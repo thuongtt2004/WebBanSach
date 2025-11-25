@@ -1,7 +1,7 @@
 <?php
 require_once 'config/connect.php';
 
-// Lấy danh sách sản phẩm từ database
+// Lấy danh sách sách từ database
 $sql = "SELECT p.*, c.category_name 
         FROM products p 
         LEFT JOIN categories c ON p.category_id = c.category_id 
@@ -18,7 +18,7 @@ if (!$result) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sản phẩm - TTHUONG</title>
+    <title>Sách - TTHUONG Bookstore</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/sanpham.css">
 </head>
@@ -28,7 +28,7 @@ if (!$result) {
     <!-- Thêm thanh tìm kiếm -->
     <div class="search-filter-container">
         <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Tìm kiếm sản phẩm...">
+            <input type="text" id="searchInput" placeholder="Tìm kiếm sách theo tên, tác giả...">
             <button onclick="searchProducts()">
                 <i class="fas fa-search"></i> Tìm kiếm
             </button>
@@ -37,22 +37,38 @@ if (!$result) {
         <div class="filter-container">
             <select id="categoryFilter">
                 <option value="all">Tất cả danh mục</option>
-                <option value="tuong">Tượng trang trí</option>
-                <option value="tranh">Tranh treo tường</option>
-                <option value="den">Đèn trang trí</option>
-                <option value="khac">Khác</option>
+                <?php
+                $categories_query = "SELECT * FROM categories ORDER BY category_name";
+                $categories_result = $conn->query($categories_query);
+                while($cat = $categories_result->fetch_assoc()): ?>
+                    <option value="<?php echo $cat['category_id']; ?>"><?php echo htmlspecialchars($cat['category_name']); ?></option>
+                <?php endwhile; ?>
             </select>
             <select id="priceFilter">
                 <option value="all">Tất cả giá</option>
-                <option value="low">Dưới 300,000 VNĐ</option>
-                <option value="medium">300,000 - 600,000 VNĐ</option>
-                <option value="high">Trên 600,000 VNĐ</option>
+                <option value="low">Dưới 100,000 VNĐ</option>
+                <option value="medium">100,000 - 300,000 VNĐ</option>
+                <option value="high">Trên 300,000 VNĐ</option>
+            </select>
+            <select id="languageFilter">
+                <option value="all">Tất cả ngôn ngữ</option>
+                <option value="Tiếng Việt">Tiếng Việt</option>
+                <option value="Tiếng Anh">Tiếng Anh</option>
+                <option value="Tiếng Trung">Tiếng Trung</option>
+                <option value="Tiếng Nhật">Tiếng Nhật</option>
+                <option value="Tiếng Hàn">Tiếng Hàn</option>
+            </select>
+            <select id="formatFilter">
+                <option value="all">Tất cả hình thức</option>
+                <option value="Bìa mềm">Bìa mềm</option>
+                <option value="Bìa cứng">Bìa cứng</option>
+                <option value="Ebook">Ebook</option>
             </select>
         </div>
     </div>
 
     <section id="all-products">
-        <h2>Tất cả sản phẩm</h2>
+        <h2>📚 Tất cả sách</h2>
         <div class="products">
             <?php
             if ($result->num_rows > 0) {
@@ -60,7 +76,10 @@ if (!$result) {
                     ?>
                     <div class="product" data-category="<?php echo $row['category_id']; ?>" 
                          data-price="<?php echo $row['price']; ?>" 
-                         data-name="<?php echo htmlspecialchars($row['product_name']); ?>" 
+                         data-name="<?php echo htmlspecialchars($row['product_name']); ?>"
+                         data-author="<?php echo htmlspecialchars($row['author'] ?? ''); ?>"
+                         data-language="<?php echo htmlspecialchars($row['language'] ?? ''); ?>"
+                         data-format="<?php echo htmlspecialchars($row['book_format'] ?? ''); ?>" 
                          onclick="showProductDetails(
                             '<?php echo addslashes($row['product_name']); ?>', 
                             '<?php echo addslashes($row['description']); ?>', 
@@ -68,7 +87,14 @@ if (!$result) {
                             '<?php echo htmlspecialchars($row['image_url']); ?>', 
                             '<?php echo htmlspecialchars($row['product_id']); ?>', 
                             '<?php echo htmlspecialchars($row['category_name']); ?>', 
-                            <?php echo $row['stock_quantity']; ?>
+                            <?php echo $row['stock_quantity']; ?>,
+                            '<?php echo addslashes($row['author'] ?? ''); ?>',
+                            '<?php echo addslashes($row['publisher'] ?? ''); ?>',
+                            '<?php echo $row['publish_year'] ?? ''; ?>',
+                            '<?php echo htmlspecialchars($row['isbn'] ?? ''); ?>',
+                            <?php echo $row['pages'] ?? 0; ?>,
+                            '<?php echo htmlspecialchars($row['language'] ?? ''); ?>',
+                            '<?php echo htmlspecialchars($row['book_format'] ?? ''); ?>'
                         )">
                         <button class="wishlist-btn" onclick="event.stopPropagation(); toggleWishlist('<?php echo $row['product_id']; ?>', this);" title="Thêm vào yêu thích">
                             <i class="far fa-heart"></i>
@@ -76,8 +102,13 @@ if (!$result) {
                         <img src="<?php echo htmlspecialchars($row['image_url']); ?>" 
                              alt="<?php echo htmlspecialchars($row['product_name']); ?>">
                         <h3><?php echo htmlspecialchars($row['product_name']); ?></h3>
-                        <p>MSP: <?php echo htmlspecialchars($row['product_id']); ?></p>
-                        <p><?php echo number_format($row['price'], 0, ',', '.'); ?> VNĐ</p>
+                        <?php if (!empty($row['author'])): ?>
+                        <p class="book-author"><i class="fas fa-user-edit"></i> <?php echo htmlspecialchars($row['author']); ?></p>
+                        <?php endif; ?>
+                        <p class="book-price"><?php echo number_format($row['price'], 0, ',', '.'); ?> VNĐ</p>
+                        <?php if (!empty($row['book_format'])): ?>
+                        <span class="book-format-badge"><?php echo htmlspecialchars($row['book_format']); ?></span>
+                        <?php endif; ?>
                         <div class="button-group">
                             <button onclick="addToCart('<?php echo $row['product_id']; ?>', 
                                                      '<?php echo addslashes($row['product_name']); ?>', 
@@ -110,12 +141,25 @@ if (!$result) {
                 </div>
                 <div class="product-info">
                     <h2 id="modalTitle"></h2>
-                    <p><strong>Mã sản phẩm:</strong> <span id="modalId"></span></p>
+                    <p class="modal-author" id="modalAuthorContainer" style="display: none;"><i class="fas fa-user-edit"></i> <strong>Tác giả:</strong> <span id="modalAuthor"></span></p>
+                    <p><strong>Mã ISBN:</strong> <span id="modalIsbn"></span></p>
                     <p><strong>Danh mục:</strong> <span id="modalCategory"></span></p>
-                    <p><strong>Giá:</strong> <span id="modalPrice"></span> VNĐ</p>
-                    <p><strong>Số lượng còn:</strong> <span id="modalStock"></span></p>
-                    <p><strong>Mô tả:</strong></p>
-                    <p id="modalDescription"></p>
+                    
+                    <div class="book-details" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0;">
+                        <p id="modalPublisherContainer" style="display: none;"><strong>NXB:</strong> <span id="modalPublisher"></span></p>
+                        <p id="modalYearContainer" style="display: none;"><strong>Năm XB:</strong> <span id="modalYear"></span></p>
+                        <p id="modalPagesContainer" style="display: none;"><strong>Số trang:</strong> <span id="modalPages"></span></p>
+                        <p id="modalLanguageContainer" style="display: none;"><strong>Ngôn ngữ:</strong> <span id="modalLanguage"></span></p>
+                        <p id="modalFormatContainer" style="display: none;"><strong>Hình thức:</strong> <span id="modalFormat"></span></p>
+                        <p><strong>Tồn kho:</strong> <span id="modalStock"></span></p>
+                    </div>
+                    
+                    <p class="modal-price" style="font-size: 24px; color: #dc3545; font-weight: bold; margin: 15px 0;"><span id="modalPrice"></span> VNĐ</p>
+                    
+                    <div class="modal-description">
+                        <p><strong>Giới thiệu sách:</strong></p>
+                        <p id="modalDescription"></p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -128,7 +172,9 @@ if (!$result) {
             
             products.forEach(product => {
                 const productName = product.getAttribute('data-name').toLowerCase();
-                if (productName.includes(searchTerm)) {
+                const author = product.getAttribute('data-author') ? product.getAttribute('data-author').toLowerCase() : '';
+                
+                if (productName.includes(searchTerm) || author.includes(searchTerm)) {
                     product.style.display = 'block';
                 } else {
                     product.style.display = 'none';
@@ -143,35 +189,43 @@ if (!$result) {
             }
         });
 
-        // Giữ nguyên các hàm filter và addToCart
+        // Filter products
         document.getElementById('categoryFilter').addEventListener('change', filterProducts);
         document.getElementById('priceFilter').addEventListener('change', filterProducts);
+        document.getElementById('languageFilter').addEventListener('change', filterProducts);
+        document.getElementById('formatFilter').addEventListener('change', filterProducts);
 
         function filterProducts() {
             const category = document.getElementById('categoryFilter').value;
             const priceRange = document.getElementById('priceFilter').value;
+            const language = document.getElementById('languageFilter').value;
+            const format = document.getElementById('formatFilter').value;
             const products = document.querySelectorAll('.product');
 
             products.forEach(product => {
                 const productCategory = product.getAttribute('data-category');
                 const productPrice = parseInt(product.getAttribute('data-price'));
+                const productLanguage = product.getAttribute('data-language');
+                const productFormat = product.getAttribute('data-format');
                 
                 let showByCategory = category === 'all' || productCategory === category;
                 let showByPrice = true;
+                let showByLanguage = language === 'all' || productLanguage === language;
+                let showByFormat = format === 'all' || productFormat === format;
 
                 switch(priceRange) {
                     case 'low':
-                        showByPrice = productPrice < 300000;
+                        showByPrice = productPrice < 100000;
                         break;
                     case 'medium':
-                        showByPrice = productPrice >= 300000 && productPrice <= 600000;
+                        showByPrice = productPrice >= 100000 && productPrice <= 300000;
                         break;
                     case 'high':
-                        showByPrice = productPrice > 600000;
+                        showByPrice = productPrice > 300000;
                         break;
                 }
 
-                if (showByCategory && showByPrice) {
+                if (showByCategory && showByPrice && showByLanguage && showByFormat) {
                     product.style.display = 'block';
                 } else {
                     product.style.display = 'none';
@@ -212,14 +266,63 @@ if (!$result) {
     });
 }
 
-        function showProductDetails(name, description, price, image, id, category, stock) {
+        function showProductDetails(name, description, price, image, id, category, stock, author, publisher, year, isbn, pages, language, format) {
             document.getElementById('modalTitle').textContent = name;
             document.getElementById('modalDescription').textContent = description;
             document.getElementById('modalPrice').textContent = price;
             document.getElementById('modalImage').src = image;
-            document.getElementById('modalId').textContent = id;
             document.getElementById('modalCategory').textContent = category;
             document.getElementById('modalStock').textContent = stock;
+            document.getElementById('modalIsbn').textContent = isbn || 'Chưa cập nhật';
+            
+            // Hiển thị tác giả
+            if (author) {
+                document.getElementById('modalAuthor').textContent = author;
+                document.getElementById('modalAuthorContainer').style.display = 'block';
+            } else {
+                document.getElementById('modalAuthorContainer').style.display = 'none';
+            }
+            
+            // Hiển thị nhà xuất bản
+            if (publisher) {
+                document.getElementById('modalPublisher').textContent = publisher;
+                document.getElementById('modalPublisherContainer').style.display = 'block';
+            } else {
+                document.getElementById('modalPublisherContainer').style.display = 'none';
+            }
+            
+            // Hiển thị năm xuất bản
+            if (year) {
+                document.getElementById('modalYear').textContent = year;
+                document.getElementById('modalYearContainer').style.display = 'block';
+            } else {
+                document.getElementById('modalYearContainer').style.display = 'none';
+            }
+            
+            // Hiển thị số trang
+            if (pages && pages > 0) {
+                document.getElementById('modalPages').textContent = pages + ' trang';
+                document.getElementById('modalPagesContainer').style.display = 'block';
+            } else {
+                document.getElementById('modalPagesContainer').style.display = 'none';
+            }
+            
+            // Hiển thị ngôn ngữ
+            if (language) {
+                document.getElementById('modalLanguage').textContent = language;
+                document.getElementById('modalLanguageContainer').style.display = 'block';
+            } else {
+                document.getElementById('modalLanguageContainer').style.display = 'none';
+            }
+            
+            // Hiển thị hình thức
+            if (format) {
+                document.getElementById('modalFormat').textContent = format;
+                document.getElementById('modalFormatContainer').style.display = 'block';
+            } else {
+                document.getElementById('modalFormatContainer').style.display = 'none';
+            }
+            
             document.getElementById('productModal').style.display = 'block';
         }
 

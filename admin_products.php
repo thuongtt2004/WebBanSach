@@ -47,19 +47,29 @@ if (isset($_POST['delete_product'])) {
 if (isset($_POST['update_product'])) {
     $product_id = $_POST['product_id'];
     $product_name = trim($_POST['product_name']);
+    $author = trim($_POST['author'] ?? '');
+    $publisher = trim($_POST['publisher'] ?? '');
+    $publish_year = !empty($_POST['publish_year']) ? intval($_POST['publish_year']) : null;
+    $isbn = trim($_POST['isbn'] ?? '');
+    $pages = !empty($_POST['pages']) ? intval($_POST['pages']) : null;
+    $language = $_POST['language'] ?? 'Tiếng Việt';
+    $book_format = $_POST['book_format'] ?? 'Bìa mềm';
+    $dimensions = trim($_POST['dimensions'] ?? '');
+    $weight = !empty($_POST['weight']) ? intval($_POST['weight']) : null;
+    $series = trim($_POST['series'] ?? '');
     $price = floatval($_POST['price']);
     $stock_quantity = intval($_POST['stock_quantity']);
     $sold_quantity = intval($_POST['sold_quantity']);
     $category_id = intval($_POST['category_id']);
     $description = trim($_POST['description']);
 
-    $stmt = $conn->prepare("UPDATE products SET product_name = ?, price = ?, stock_quantity = ?, sold_quantity = ?, category_id = ?, description = ? WHERE product_id = ?");
-    $stmt->bind_param("sdiidsi", $product_name, $price, $stock_quantity, $sold_quantity, $category_id, $description, $product_id);
+    $stmt = $conn->prepare("UPDATE products SET product_name = ?, author = ?, publisher = ?, publish_year = ?, isbn = ?, pages = ?, language = ?, book_format = ?, dimensions = ?, weight = ?, series = ?, price = ?, stock_quantity = ?, sold_quantity = ?, category_id = ?, description = ? WHERE product_id = ?");
+    $stmt->bind_param("sssisssssidiiidis", $product_name, $author, $publisher, $publish_year, $isbn, $pages, $language, $book_format, $dimensions, $weight, $series, $price, $stock_quantity, $sold_quantity, $category_id, $description, $product_id);
 
     if ($stmt->execute()) {
-        echo "<script>alert('Cập nhật sản phẩm thành công!');</script>";
+        echo "<script>alert('Cập nhật sách thành công!');</script>";
     } else {
-        echo "<script>alert('Lỗi khi cập nhật sản phẩm: " . $conn->error . "');</script>";
+        echo "<script>alert('Lỗi khi cập nhật sách: " . $conn->error . "');</script>";
     }
     $stmt->close();
 }
@@ -85,7 +95,7 @@ while ($category = $categories_result->fetch_assoc()) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Lý Sản Phẩm - TTHUONG Store</title>
+    <title>Quản Lý Sách - TTHUONG Bookstore</title>
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="css/admin_products.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -96,21 +106,22 @@ while ($category = $categories_result->fetch_assoc()) {
 
     <main>
     <div class="container">
-        <h1>Quản Lý Sản Phẩm</h1>
+        <h1><i class="fas fa-book"></i> Quản Lý Sách</h1>
         
         <div class="button-container">
             <a href="add_product.php" class="add-product-btn">
-                <i class="fas fa-plus"></i> Thêm Sản Phẩm Mới
+                <i class="fas fa-plus"></i> Thêm Sách Mới
             </a>
         </div>
         <table>
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Tên Sản Phẩm</th>
+                    <th>Tên Sách</th>
+                    <th>Tác Giả</th>
                     <th>Danh Mục</th>
                     <th>Giá</th>
-                    <th>Số Lượng</th>
+                    <th>Tồn Kho</th>
                     <th>Đã Bán</th>
                     <th>Hình Ảnh</th>
                     <th>Thao Tác</th>
@@ -121,6 +132,7 @@ while ($category = $categories_result->fetch_assoc()) {
                     <tr>
                         <td><?php echo $row['product_id']; ?></td>
                         <td><?php echo $row['product_name']; ?></td>
+                        <td><?php echo $row['author'] ?? '-'; ?></td>
                         <td><?php echo $row['category_name']; ?></td>
                         <td><?php echo number_format($row['price'], 0, ',', '.'); ?> VNĐ</td>
                         <td><?php echo $row['stock_quantity']; ?></td>
@@ -142,36 +154,45 @@ while ($category = $categories_result->fetch_assoc()) {
         </table>
     </div>
 
-    <!-- Modal Sửa Sản Phẩm -->
+    <!-- Modal Sửa Sách -->
     <div id="editModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
             <span class="close" onclick="closeEditModal()">&times;</span>
-            <h2>Sửa Thông Tin Sản Phẩm</h2>
-            <form id="editForm" method="POST">
+            <h2><i class="fas fa-edit"></i> Sửa Thông Tin Sách</h2>
+            <form id="editForm" method="POST" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                 <input type="hidden" name="product_id" id="edit_product_id">
                 
+                <div style="grid-column: 1 / -1; font-weight: 600; color: #007bff; border-bottom: 2px solid #007bff; padding-bottom: 5px; margin-top: 10px;">
+                    <i class="fas fa-info-circle"></i> Thông tin cơ bản
+                </div>
+                
                 <div class="form-group">
-                    <label>Tên sản phẩm:</label>
+                    <label>Tên sách <span style="color:red;">*</span></label>
                     <input type="text" name="product_name" id="edit_product_name" required>
                 </div>
                 
                 <div class="form-group">
-                    <label>Giá:</label>
-                    <input type="number" name="price" id="edit_price" required>
+                    <label>Tác giả <span style="color:red;">*</span></label>
+                    <input type="text" name="author" id="edit_author" required>
                 </div>
                 
                 <div class="form-group">
-                    <label>Số lượng:</label>
-                    <input type="number" name="stock_quantity" id="edit_stock_quantity" required>
+                    <label>Nhà xuất bản</label>
+                    <input type="text" name="publisher" id="edit_publisher">
                 </div>
                 
                 <div class="form-group">
-                    <label>Đã bán:</label>
-                    <input type="number" name="sold_quantity" id="edit_sold_quantity" required>
+                    <label>Năm xuất bản</label>
+                    <input type="number" name="publish_year" id="edit_publish_year" min="1900" max="2025">
                 </div>
                 
                 <div class="form-group">
-                    <label>Danh mục:</label>
+                    <label>Mã ISBN</label>
+                    <input type="text" name="isbn" id="edit_isbn">
+                </div>
+                
+                <div class="form-group">
+                    <label>Danh mục <span style="color:red;">*</span></label>
                     <select name="category_id" id="edit_category_id" required>
                         <?php foreach($categories as $category): ?>
                             <option value="<?php echo $category['category_id']; ?>">
@@ -182,11 +203,81 @@ while ($category = $categories_result->fetch_assoc()) {
                 </div>
                 
                 <div class="form-group">
-                    <label>Mô tả:</label>
-                    <textarea name="description" id="edit_description"></textarea>
+                    <label>Bộ sách/Series</label>
+                    <input type="text" name="series" id="edit_series">
                 </div>
                 
-                <button type="submit" name="update_product">Cập nhật</button>
+                <div style="grid-column: 1 / -1; font-weight: 600; color: #007bff; border-bottom: 2px solid #007bff; padding-bottom: 5px; margin-top: 10px;">
+                    <i class="fas fa-book-open"></i> Thông tin chi tiết
+                </div>
+                
+                <div class="form-group">
+                    <label>Số trang</label>
+                    <input type="number" name="pages" id="edit_pages" min="1">
+                </div>
+                
+                <div class="form-group">
+                    <label>Ngôn ngữ</label>
+                    <select name="language" id="edit_language">
+                        <option value="Tiếng Việt">Tiếng Việt</option>
+                        <option value="Tiếng Anh">Tiếng Anh</option>
+                        <option value="Tiếng Trung">Tiếng Trung</option>
+                        <option value="Tiếng Nhật">Tiếng Nhật</option>
+                        <option value="Tiếng Hàn">Tiếng Hàn</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Hình thức</label>
+                    <select name="book_format" id="edit_book_format">
+                        <option value="Bìa mềm">Bìa mềm</option>
+                        <option value="Bìa cứng">Bìa cứng</option>
+                        <option value="Ebook">Ebook</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Kích thước (cm)</label>
+                    <input type="text" name="dimensions" id="edit_dimensions" placeholder="VD: 14.5 x 20.5 x 1.5">
+                </div>
+                
+                <div class="form-group">
+                    <label>Trọng lượng (gram)</label>
+                    <input type="number" name="weight" id="edit_weight" min="1">
+                </div>
+                
+                <div style="grid-column: 1 / -1; font-weight: 600; color: #007bff; border-bottom: 2px solid #007bff; padding-bottom: 5px; margin-top: 10px;">
+                    <i class="fas fa-tags"></i> Giá và tồn kho
+                </div>
+                
+                <div class="form-group">
+                    <label>Giá bán (VNĐ) <span style="color:red;">*</span></label>
+                    <input type="number" name="price" id="edit_price" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Tồn kho <span style="color:red;">*</span></label>
+                    <input type="number" name="stock_quantity" id="edit_stock_quantity" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Đã bán <span style="color:red;">*</span></label>
+                    <input type="number" name="sold_quantity" id="edit_sold_quantity" required>
+                </div>
+                
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label>Mô tả / Giới thiệu sách</label>
+                    <textarea name="description" id="edit_description" rows="4"></textarea>
+                </div>
+                
+                <div style="grid-column: 1 / -1; display: flex; gap: 10px; margin-top: 10px;">
+                    <button type="submit" name="update_product" style="flex: 1; padding: 12px; background: #28a745; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                        <i class="fas fa-save"></i> Cập nhật
+                    </button>
+                    <button type="button" onclick="closeEditModal()" style="flex: 1; padding: 12px; background: #6c757d; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                        <i class="fas fa-times"></i> Hủy
+                    </button>
+                </div>
             </form>
         </div>
     </div>
@@ -200,7 +291,7 @@ while ($category = $categories_result->fetch_assoc()) {
             return false;
         }
 
-        // Xử lý modal sửa sản phẩm
+        // Xử lý modal sửa sách
         function openEditModal(product) {
             const modal = document.getElementById('editModal');
             modal.style.display = 'flex';
@@ -208,6 +299,16 @@ while ($category = $categories_result->fetch_assoc()) {
             // Điền thông tin vào form
             document.getElementById('edit_product_id').value = product.product_id;
             document.getElementById('edit_product_name').value = product.product_name;
+            document.getElementById('edit_author').value = product.author || '';
+            document.getElementById('edit_publisher').value = product.publisher || '';
+            document.getElementById('edit_publish_year').value = product.publish_year || '';
+            document.getElementById('edit_isbn').value = product.isbn || '';
+            document.getElementById('edit_pages').value = product.pages || '';
+            document.getElementById('edit_language').value = product.language || 'Tiếng Việt';
+            document.getElementById('edit_book_format').value = product.book_format || 'Bìa mềm';
+            document.getElementById('edit_dimensions').value = product.dimensions || '';
+            document.getElementById('edit_weight').value = product.weight || '';
+            document.getElementById('edit_series').value = product.series || '';
             document.getElementById('edit_price').value = product.price;
             document.getElementById('edit_stock_quantity').value = product.stock_quantity;
             document.getElementById('edit_sold_quantity').value = product.sold_quantity;

@@ -7,7 +7,7 @@ if (session_status() === PHP_SESSION_NONE) {
     <div class="header-top">
         <div class="logo-section">
             <img src="./images/logoo.jpg" alt="Logo" class="site-logo">
-            <h1>TTHUONG Store</h1>
+            <h1>TTHUONG Bookstore</h1>
         </div>
         
         <div class="header-actions">
@@ -62,12 +62,13 @@ if (session_status() === PHP_SESSION_NONE) {
     <nav class="main-nav">
         <ul>
             <li><a href="home.php"><i class="fas fa-home"></i> Trang chủ</a></li>
-            <li><a href="products.php"><i class="fas fa-box"></i> Sản phẩm</a></li>
-            <li><a href="cart.php"><i class="fas fa-shopping-cart"></i> Đặt hàng</a></li>
-            <li><a href="warranty.php"><i class="fas fa-shield-alt"></i> Chính sách bảo hành</a></li>
-            <li><a href="track_order.php"><i class="fas fa-truck"></i> Theo dõi đơn hàng</a></li>
+            <li><a href="products.php"><i class="fas fa-book"></i> Sách</a></li>
+            <li><a href="authors.php"><i class="fas fa-user-edit"></i> Tác giả</a></li>
+            <li><a href="publishers.php"><i class="fas fa-building"></i> NXB</a></li>
+            <li><a href="cart.php"><i class="fas fa-shopping-cart"></i> Giỏ hàng</a></li>
+            <li><a href="track_order.php"><i class="fas fa-truck"></i> Theo dõi đơn</a></li>
             <li><a href="reviews.php"><i class="fas fa-star"></i> Đánh giá</a></li>
-            <li><a href="#contact"><i class="fas fa-envelope"></i> Thông tin liên hệ</a></li>
+            <li><a href="#contact"><i class="fas fa-envelope"></i> Liên hệ</a></li>
         </ul>
     </nav>
 </header>

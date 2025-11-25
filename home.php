@@ -39,7 +39,7 @@ if (!$result) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TTHUONG Store</title>
+    <title>TTHUONG Bookstore - Nhà sách trực tuyến</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/trangchu.css">
     <link rel="stylesheet" href="css/promotions.css">
@@ -135,15 +135,15 @@ if (!$result) {
                 <img src="images/banner3.jpg" style="width:100%">
             </div>
         </div>
-        <h2>Chào mừng đến với TTHUONG Store</h2>
-        <p>TTHUONG- "Hãy biến không gian của bạn thành một tác phẩm nghệ thuật"</p>
-        <p>TTHUONG Store là điểm đến hoàn hảo cho những ai yêu thích sự sáng tạo và mong muốn mang vẻ đẹp nghệ thuật vào không gian sống. Với đa dạng sản phẩm decor, nội thất, và phụ kiện tinh tế, cửa hàng không chỉ cung cấp mà còn truyền cảm hứng để bạn tạo nên một không gian đậm chất riêng.
-        <p>Từng món đồ tại TTHUONG Store đều được chọn lọc kỹ lưỡng, kết hợp giữa phong cách hiện đại và nét tinh tế thủ công, giúp biến từng góc nhỏ trong nhà thành nơi chứa đựng cảm xúc và phong cách nghệ thuật độc đáo.</p>
-        <p>Hãy để TTHUONG Store đồng hành cùng bạn trong hành trình tô điểm tổ ấm và biến từng khoảnh khắc sống trở nên đáng nhớ.</p>
+        <h2>Chào mừng đến với TTHUONG Bookstore</h2>
+        <p>TTHUONG Bookstore - "Mở ra thế giới kiến thức qua từng trang sách"</p>
+        <p>TTHUONG Bookstore là điểm đến hoàn hảo cho những người yêu thích đọc sách và khát khao kiến thức. Với kho sách phong phú bao gồm văn học, kinh tế, tâm lý, thiếu nhi, và nhiều thể loại khác, chúng tôi không chỉ cung cấp sách mà còn truyền cảm hứng cho hành trình khám phá của bạn.</p>
+        <p>Từng cuốn sách tại TTHUONG Bookstore đều được chọn lọc kỹ lưỡng, từ những tác phẩm kinh điển đến những ấn phẩm mới nhất, giúp bạn dễ dàng tìm thấy cuốn sách ưng ý cho riêng mình.</p>
+        <p>Hãy để TTHUONG Bookstore đồng hành cùng bạn trong hành trình phát triển bản thân và biến mỗi khoảnh khắc đọc sách trở nên ý nghĩa.</p>
     </section>
 
     <section id="products">
-        <h2>Sản phẩm nổi bật</h2>
+        <h2>📚 Sách nổi bật</h2>
         <div class="products">
             <?php
             if ($result->num_rows > 0) {
@@ -156,13 +156,22 @@ if (!$result) {
                         '<?php echo htmlspecialchars($row['image_url']); ?>',
                         '<?php echo htmlspecialchars($row['product_id']); ?>',
                         '<?php echo htmlspecialchars($row['category_name']); ?>',
-                        <?php echo $row['stock_quantity']; ?>
+                        <?php echo $row['stock_quantity']; ?>,
+                        '<?php echo addslashes($row['author'] ?? ''); ?>',
+                        '<?php echo addslashes($row['publisher'] ?? ''); ?>',
+                        '<?php echo $row['publish_year'] ?? ''; ?>',
+                        '<?php echo htmlspecialchars($row['isbn'] ?? ''); ?>',
+                        <?php echo $row['pages'] ?? 0; ?>,
+                        '<?php echo htmlspecialchars($row['language'] ?? ''); ?>',
+                        '<?php echo htmlspecialchars($row['book_format'] ?? ''); ?>'
                     )">
                         <img src="<?php echo htmlspecialchars($row['image_url']); ?>" 
                              alt="<?php echo htmlspecialchars($row['product_name']); ?>">
                         <h3><?php echo htmlspecialchars($row['product_name']); ?></h3>
-                        <p>MSP: <?php echo htmlspecialchars($row['product_id']); ?></p>
-                        <p><?php echo number_format($row['price'], 0, ',', '.'); ?> VNĐ</p>
+                        <?php if (!empty($row['author'])): ?>
+                        <p class="book-author"><i class="fas fa-user-edit"></i> <?php echo htmlspecialchars($row['author']); ?></p>
+                        <?php endif; ?>
+                        <p class="book-price"><?php echo number_format($row['price'], 0, ',', '.'); ?> VNĐ</p>
                         <div class="button-group">
                             <button onclick="event.stopPropagation(); addToCart('<?php echo $row['product_id']; ?>', 
                                                      '<?php echo addslashes($row['product_name']); ?>', 
@@ -195,12 +204,25 @@ if (!$result) {
                 </div>
                 <div class="product-info">
                     <h2 id="modalTitle"></h2>
-                    <p><strong>Mã sản phẩm:</strong> <span id="modalId"></span></p>
+                    <p class="modal-author" id="modalAuthorContainer" style="display: none;"><i class="fas fa-user-edit"></i> <strong>Tác giả:</strong> <span id="modalAuthor"></span></p>
+                    <p><strong>Mã ISBN:</strong> <span id="modalIsbn"></span></p>
                     <p><strong>Danh mục:</strong> <span id="modalCategory"></span></p>
-                    <p><strong>Giá:</strong> <span id="modalPrice"></span> VNĐ</p>
-                    <p><strong>Số lượng còn:</strong> <span id="modalStock"></span></p>
-                    <p><strong>Mô tả:</strong></p>
-                    <p id="modalDescription"></p>
+                    
+                    <div class="book-details" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0;">
+                        <p id="modalPublisherContainer" style="display: none;"><strong>NXB:</strong> <span id="modalPublisher"></span></p>
+                        <p id="modalYearContainer" style="display: none;"><strong>Năm XB:</strong> <span id="modalYear"></span></p>
+                        <p id="modalPagesContainer" style="display: none;"><strong>Số trang:</strong> <span id="modalPages"></span></p>
+                        <p id="modalLanguageContainer" style="display: none;"><strong>Ngôn ngữ:</strong> <span id="modalLanguage"></span></p>
+                        <p id="modalFormatContainer" style="display: none;"><strong>Hình thức:</strong> <span id="modalFormat"></span></p>
+                        <p><strong>Tồn kho:</strong> <span id="modalStock"></span></p>
+                    </div>
+                    
+                    <p class="modal-price" style="font-size: 24px; color: #dc3545; font-weight: bold; margin: 15px 0;"><span id="modalPrice"></span> VNĐ</p>
+                    
+                    <div class="modal-description">
+                        <p><strong>Giới thiệu sách:</strong></p>
+                        <p id="modalDescription"></p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -225,14 +247,57 @@ if (!$result) {
             setTimeout(showSlides, 4000);
         }
 
-        function showProductDetails(name, description, price, image, id, category, stock) {
+        function showProductDetails(name, description, price, image, id, category, stock, author, publisher, year, isbn, pages, language, format) {
             document.getElementById('modalTitle').textContent = name;
             document.getElementById('modalDescription').textContent = description;
             document.getElementById('modalPrice').textContent = price;
             document.getElementById('modalImage').src = image;
-            document.getElementById('modalId').textContent = id;
             document.getElementById('modalCategory').textContent = category;
             document.getElementById('modalStock').textContent = stock;
+            document.getElementById('modalIsbn').textContent = isbn || 'Chưa cập nhật';
+            
+            if (author) {
+                document.getElementById('modalAuthor').textContent = author;
+                document.getElementById('modalAuthorContainer').style.display = 'block';
+            } else {
+                document.getElementById('modalAuthorContainer').style.display = 'none';
+            }
+            
+            if (publisher) {
+                document.getElementById('modalPublisher').textContent = publisher;
+                document.getElementById('modalPublisherContainer').style.display = 'block';
+            } else {
+                document.getElementById('modalPublisherContainer').style.display = 'none';
+            }
+            
+            if (year) {
+                document.getElementById('modalYear').textContent = year;
+                document.getElementById('modalYearContainer').style.display = 'block';
+            } else {
+                document.getElementById('modalYearContainer').style.display = 'none';
+            }
+            
+            if (pages && pages > 0) {
+                document.getElementById('modalPages').textContent = pages + ' trang';
+                document.getElementById('modalPagesContainer').style.display = 'block';
+            } else {
+                document.getElementById('modalPagesContainer').style.display = 'none';
+            }
+            
+            if (language) {
+                document.getElementById('modalLanguage').textContent = language;
+                document.getElementById('modalLanguageContainer').style.display = 'block';
+            } else {
+                document.getElementById('modalLanguageContainer').style.display = 'none';
+            }
+            
+            if (format) {
+                document.getElementById('modalFormat').textContent = format;
+                document.getElementById('modalFormatContainer').style.display = 'block';
+            } else {
+                document.getElementById('modalFormatContainer').style.display = 'none';
+            }
+            
             document.getElementById('productModal').style.display = 'block';
         }
 

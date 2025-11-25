@@ -2,7 +2,7 @@
     <div class="admin-header-top">
         <div class="logo-section">
             <img src="./images/logoo.jpg" alt="Logo" class="admin-logo">
-            <h1>TTHUONG Store - Admin</h1>
+            <h1>TTHUONG Bookstore - Admin</h1>
         </div>
         
         <div class="admin-header-actions">
@@ -26,7 +26,7 @@
             </li>
             <li>
                 <a href="admin_products.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_products.php' ? 'active' : ''; ?>">
-                    <i class="fas fa-box"></i> Sản phẩm
+                    <i class="fas fa-book"></i> Quản lý sách
                 </a>
             </li>
             <li>
