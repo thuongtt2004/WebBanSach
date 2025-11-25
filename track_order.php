@@ -127,7 +127,7 @@ $return_days_limit = 7;
                     </div>
 
                     <?php if ($order['order_status'] == 'Hoàn thành'): 
-                        $completed_date = $order['completed_date'] ? strtotime($order['completed_date']) : time();
+                        $completed_date = (isset($order['completed_date']) && $order['completed_date']) ? strtotime($order['completed_date']) : time();
                         $days_passed = floor((time() - $completed_date) / 86400);
                         $days_left = $return_days_limit - $days_passed;
                         $customer_confirmed = $order['customer_confirmed'] ?? 0;
