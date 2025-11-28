@@ -26,12 +26,26 @@ $sql = "SELECT p.*, c.category_name
         FROM products p 
         LEFT JOIN categories c ON p.category_id = c.category_id 
         ORDER BY p.product_id DESC 
-        LIMIT 4";
+        LIMIT 5";
 $result = $conn->query($sql);
 
 if (!$result) {
     die("Lỗi truy vấn: " . $conn->error);
 }
+
+// Lấy top 5 sách bán chạy trong 1 tháng gần đây
+$bestsellers_query = "SELECT p.*, c.category_name,
+                      COALESCE(SUM(od.quantity), 0) as total_sold
+                      FROM products p
+                      LEFT JOIN categories c ON p.category_id = c.category_id
+                      LEFT JOIN order_details od ON p.product_id = od.product_id
+                      LEFT JOIN orders o ON od.order_id = o.order_id
+                      WHERE o.order_date >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
+                      AND o.status IN ('completed', 'pending', 'processing')
+                      GROUP BY p.product_id
+                      ORDER BY total_sold DESC, p.sold_quantity DESC
+                      LIMIT 5";
+$bestsellers_result = $conn->query($bestsellers_query);
 ?>
 
 <!DOCTYPE html>
@@ -142,8 +156,78 @@ if (!$result) {
         <p>Hãy để TTHUONG Bookstore đồng hành cùng bạn trong hành trình phát triển bản thân và biến mỗi khoảnh khắc đọc sách trở nên ý nghĩa.</p>
     </section>
 
+    <!-- Bestsellers Section -->
+    <section id="bestsellers">
+        <h2>🔥 Sách bán chạy tháng này</h2>
+        <div class="bestsellers-container">
+            <?php
+            if ($bestsellers_result && $bestsellers_result->num_rows > 0) {
+                $rank = 1;
+                while($book = $bestsellers_result->fetch_assoc()) {
+                    ?>
+                    <div class="bestseller-item" onclick="showProductDetails(
+                        '<?php echo htmlspecialchars($book['product_name']); ?>',
+                        '<?php echo htmlspecialchars($book['description']); ?>',
+                        '<?php echo number_format($book['price'], 0, ',', '.'); ?>',
+                        '<?php echo htmlspecialchars($book['image_url']); ?>',
+                        '<?php echo htmlspecialchars($book['product_id']); ?>',
+                        '<?php echo htmlspecialchars($book['category_name']); ?>',
+                        <?php echo $book['stock_quantity']; ?>,
+                        '<?php echo addslashes($book['author'] ?? ''); ?>',
+                        '<?php echo addslashes($book['publisher'] ?? ''); ?>',
+                        '<?php echo $book['publish_year'] ?? ''; ?>',
+                        '<?php echo htmlspecialchars($book['isbn'] ?? ''); ?>',
+                        <?php echo $book['pages'] ?? 0; ?>,
+                        '<?php echo htmlspecialchars($book['language'] ?? ''); ?>',
+                        '<?php echo htmlspecialchars($book['book_format'] ?? ''); ?>'
+                    )">
+                        <div class="bestseller-rank">
+                            <span class="rank-number">#<?php echo $rank; ?></span>
+                        </div>
+                        <div class="bestseller-image">
+                            <img src="<?php echo htmlspecialchars($book['image_url']); ?>" 
+                                 alt="<?php echo htmlspecialchars($book['product_name']); ?>">
+                            <?php if ($rank <= 3): ?>
+                                <div class="hot-badge">
+                                    <i class="fas fa-fire"></i> HOT
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        <div class="bestseller-info">
+                            <h3><?php echo htmlspecialchars($book['product_name']); ?></h3>
+                            <?php if (!empty($book['author'])): ?>
+                            <p class="bestseller-author"><i class="fas fa-user-edit"></i> <?php echo htmlspecialchars($book['author']); ?></p>
+                            <?php endif; ?>
+                            <p class="bestseller-sold">
+                                <i class="fas fa-chart-line"></i> Đã bán: <strong><?php echo $book['total_sold'] ?? $book['sold_quantity']; ?></strong>
+                            </p>
+                            <p class="bestseller-price"><?php echo number_format($book['price'], 0, ',', '.'); ?> VNĐ</p>
+                            <div class="bestseller-buttons">
+                                <button onclick="event.stopPropagation(); addToCart('<?php echo $book['product_id']; ?>', 
+                                                         '<?php echo addslashes($book['product_name']); ?>', 
+                                                         <?php echo $book['price']; ?>)" 
+                                        class="btn-add-cart">
+                                    <i class="fas fa-cart-plus"></i> Thêm vào giỏ
+                                </button>
+                                <button onclick="event.stopPropagation(); window.location.href='order.php?id=<?php echo $book['product_id']; ?>'" 
+                                        class="btn-buy-now">
+                                    Mua ngay
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <?php
+                    $rank++;
+                }
+            } else {
+                echo "<p style='text-align: center; color: #666;'>Chưa có dữ liệu bán hàng trong tháng này.</p>";
+            }
+            ?>
+        </div>
+    </section>
+
     <section id="products">
-        <h2>📚 Sách nổi bật</h2>
+        <h2>📚 Sách mới nhất</h2>
         <div class="products">
             <?php
             if ($result->num_rows > 0) {
@@ -165,6 +249,9 @@ if (!$result) {
                         '<?php echo htmlspecialchars($row['language'] ?? ''); ?>',
                         '<?php echo htmlspecialchars($row['book_format'] ?? ''); ?>'
                     )">
+                        <div class="new-badge">
+                            <i class="fas fa-star"></i> NEW
+                        </div>
                         <img src="<?php echo htmlspecialchars($row['image_url']); ?>" 
                              alt="<?php echo htmlspecialchars($row['product_name']); ?>">
                         <h3><?php echo htmlspecialchars($row['product_name']); ?></h3>

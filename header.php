@@ -65,10 +65,11 @@ if (session_status() === PHP_SESSION_NONE) {
             <li><a href="products.php"><i class="fas fa-book"></i> Sách</a></li>
             <li><a href="authors.php"><i class="fas fa-user-edit"></i> Tác giả</a></li>
             <li><a href="publishers.php"><i class="fas fa-building"></i> NXB</a></li>
+            <li><a href="blog.php"><i class="fas fa-newspaper"></i> Blog</a></li>
             <li><a href="cart.php"><i class="fas fa-shopping-cart"></i> Giỏ hàng</a></li>
             <li><a href="track_order.php"><i class="fas fa-truck"></i> Theo dõi đơn</a></li>
             <li><a href="reviews.php"><i class="fas fa-star"></i> Đánh giá</a></li>
-            <li><a href="#contact"><i class="fas fa-envelope"></i> Liên hệ</a></li>
+            <li><a href="contact.php"><i class="fas fa-envelope"></i> Liên hệ</a></li>
         </ul>
     </nav>
 </header>

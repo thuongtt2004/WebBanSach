@@ -25,50 +25,107 @@ if (!$result) {
 <body>
     <?php require_once 'header.php'; ?>
 
-    <!-- Thêm thanh tìm kiếm -->
-    <div class="search-filter-container">
-        <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Tìm kiếm sách theo tên, tác giả...">
-            <button onclick="searchProducts()">
-                <i class="fas fa-search"></i> Tìm kiếm
-            </button>
-        </div>
-
-        <div class="filter-container">
-            <select id="categoryFilter">
-                <option value="all">Tất cả danh mục</option>
-                <?php
-                $categories_query = "SELECT * FROM categories ORDER BY category_name";
-                $categories_result = $conn->query($categories_query);
-                while($cat = $categories_result->fetch_assoc()): ?>
-                    <option value="<?php echo $cat['category_id']; ?>"><?php echo htmlspecialchars($cat['category_name']); ?></option>
-                <?php endwhile; ?>
-            </select>
-            <select id="priceFilter">
-                <option value="all">Tất cả giá</option>
-                <option value="low">Dưới 100,000 VNĐ</option>
-                <option value="medium">100,000 - 300,000 VNĐ</option>
-                <option value="high">Trên 300,000 VNĐ</option>
-            </select>
-            <select id="languageFilter">
-                <option value="all">Tất cả ngôn ngữ</option>
-                <option value="Tiếng Việt">Tiếng Việt</option>
-                <option value="Tiếng Anh">Tiếng Anh</option>
-                <option value="Tiếng Trung">Tiếng Trung</option>
-                <option value="Tiếng Nhật">Tiếng Nhật</option>
-                <option value="Tiếng Hàn">Tiếng Hàn</option>
-            </select>
-            <select id="formatFilter">
-                <option value="all">Tất cả hình thức</option>
-                <option value="Bìa mềm">Bìa mềm</option>
-                <option value="Bìa cứng">Bìa cứng</option>
-                <option value="Ebook">Ebook</option>
-            </select>
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-container">
+        <div class="breadcrumb">
+            <a href="index.php"><i class="fas fa-home"></i> Trang chủ</a>
+            <span class="separator">/</span>
+            <span class="current">Sách</span>
         </div>
     </div>
 
-    <section id="all-products">
-        <h2>📚 Tất cả sách</h2>
+    <!-- Main Container -->
+    <div class="products-page-container">
+        <!-- Sidebar Filters -->
+        <aside class="filters-sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-filter"></i> Bộ lọc</h3>
+                <button class="clear-filters" onclick="clearAllFilters()">Xóa bộ lọc</button>
+            </div>
+
+            <!-- Search Box -->
+            <div class="filter-section">
+                <h4>Tìm kiếm</h4>
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Tìm sách, tác giả...">
+                    <button onclick="searchProducts()">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Category Filter -->
+            <div class="filter-section">
+                <h4><i class="fas fa-list"></i> Danh mục</h4>
+                <select id="categoryFilter">
+                    <option value="all">Tất cả danh mục</option>
+                    <?php
+                    $categories_query = "SELECT * FROM categories ORDER BY category_name";
+                    $categories_result = $conn->query($categories_query);
+                    while($cat = $categories_result->fetch_assoc()): ?>
+                        <option value="<?php echo $cat['category_id']; ?>"><?php echo htmlspecialchars($cat['category_name']); ?></option>
+                    <?php endwhile; ?>
+                </select>
+            </div>
+
+            <!-- Price Filter -->
+            <div class="filter-section">
+                <h4><i class="fas fa-tag"></i> Khoảng giá</h4>
+                <select id="priceFilter">
+                    <option value="all">Tất cả</option>
+                    <option value="low">Dưới 100,000 VNĐ</option>
+                    <option value="medium">100,000 - 300,000 VNĐ</option>
+                    <option value="high">Trên 300,000 VNĐ</option>
+                </select>
+            </div>
+
+            <!-- Language Filter -->
+            <div class="filter-section">
+                <h4><i class="fas fa-language"></i> Ngôn ngữ</h4>
+                <select id="languageFilter">
+                    <option value="all">Tất cả</option>
+                    <option value="Tiếng Việt">Tiếng Việt</option>
+                    <option value="Tiếng Anh">Tiếng Anh</option>
+                    <option value="Tiếng Trung">Tiếng Trung</option>
+                    <option value="Tiếng Nhật">Tiếng Nhật</option>
+                    <option value="Tiếng Hàn">Tiếng Hàn</option>
+                </select>
+            </div>
+
+            <!-- Format Filter -->
+            <div class="filter-section">
+                <h4><i class="fas fa-book"></i> Hình thức</h4>
+                <select id="formatFilter">
+                    <option value="all">Tất cả</option>
+                    <option value="Bìa mềm">Bìa mềm</option>
+                    <option value="Bìa cứng">Bìa cứng</option>
+                    <option value="Ebook">Ebook</option>
+                </select>
+            </div>
+        </aside>
+
+        <!-- Main Products Area -->
+        <main class="products-main">
+            <!-- Products Header -->
+            <div class="products-header">
+                <div class="header-left">
+                    <h2><i class="fas fa-book"></i> Tất cả sách</h2>
+                    <span class="product-count" id="productCount">Hiển thị <?php echo $result->num_rows; ?> sản phẩm</span>
+                </div>
+                <div class="header-right">
+                    <label for="sortFilter">Sắp xếp:</label>
+                    <select id="sortFilter" onchange="sortProducts()">
+                        <option value="default">Mặc định</option>
+                        <option value="name-asc">Tên A-Z</option>
+                        <option value="name-desc">Tên Z-A</option>
+                        <option value="price-asc">Giá thấp đến cao</option>
+                        <option value="price-desc">Giá cao đến thấp</option>
+                        <option value="newest">Mới nhất</option>
+                    </select>
+                </div>
+            </div>
+
+            <section id="all-products">
         <div class="products">
             <?php
             if ($result->num_rows > 0) {
@@ -125,11 +182,13 @@ if (!$result) {
                     <?php
                 }
             } else {
-                echo "<p>Không có sản phẩm nào.</p>";
+                echo "<p class='no-products'>Không có sản phẩm nào.</p>";
             }
             ?>
         </div>
     </section>
+        </main>
+    </div>
 
     <!-- Modal chi tiết sản phẩm -->
     <div id="productModal" class="modal">
@@ -201,6 +260,7 @@ if (!$result) {
             const language = document.getElementById('languageFilter').value;
             const format = document.getElementById('formatFilter').value;
             const products = document.querySelectorAll('.product');
+            let visibleCount = 0;
 
             products.forEach(product => {
                 const productCategory = product.getAttribute('data-category');
@@ -227,10 +287,56 @@ if (!$result) {
 
                 if (showByCategory && showByPrice && showByLanguage && showByFormat) {
                     product.style.display = 'block';
+                    visibleCount++;
                 } else {
                     product.style.display = 'none';
                 }
             });
+            
+            updateProductCount(visibleCount);
+        }
+
+        function updateProductCount(count) {
+            const countElement = document.getElementById('productCount');
+            if (countElement) {
+                countElement.textContent = `Hiển thị ${count} sản phẩm`;
+            }
+        }
+
+        function clearAllFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('categoryFilter').value = 'all';
+            document.getElementById('priceFilter').value = 'all';
+            document.getElementById('languageFilter').value = 'all';
+            document.getElementById('formatFilter').value = 'all';
+            document.getElementById('sortFilter').value = 'default';
+            
+            const products = document.querySelectorAll('.product');
+            products.forEach(product => product.style.display = 'block');
+            updateProductCount(products.length);
+        }
+
+        function sortProducts() {
+            const sortValue = document.getElementById('sortFilter').value;
+            const productsContainer = document.querySelector('.products');
+            const products = Array.from(document.querySelectorAll('.product'));
+            
+            products.sort((a, b) => {
+                switch(sortValue) {
+                    case 'name-asc':
+                        return a.getAttribute('data-name').localeCompare(b.getAttribute('data-name'));
+                    case 'name-desc':
+                        return b.getAttribute('data-name').localeCompare(a.getAttribute('data-name'));
+                    case 'price-asc':
+                        return parseInt(a.getAttribute('data-price')) - parseInt(b.getAttribute('data-price'));
+                    case 'price-desc':
+                        return parseInt(b.getAttribute('data-price')) - parseInt(a.getAttribute('data-price'));
+                    default:
+                        return 0;
+                }
+            });
+            
+            products.forEach(product => productsContainer.appendChild(product));
         }
 
         function addToCart(productId, productName, price) {

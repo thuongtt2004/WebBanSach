@@ -86,6 +86,59 @@ if(isset($_POST['order_id']) && isset($_POST['status'])) {
     $stmt->close();
 }
 
+// Xử lý xóa đơn hàng
+if(isset($_POST['delete_order'])) {
+    $order_id = intval($_POST['order_id']);
+    
+    // Lấy trạng thái đơn hàng
+    $status_sql = "SELECT order_status FROM orders WHERE order_id = ?";
+    $status_stmt = $conn->prepare($status_sql);
+    $status_stmt->bind_param("i", $order_id);
+    $status_stmt->execute();
+    $status_result = $status_stmt->get_result();
+    $order_status = $status_result->fetch_assoc()['order_status'];
+    
+    // Nếu đơn đã hoàn thành, hoàn lại tồn kho
+    if ($order_status === 'Hoàn thành') {
+        $details_sql = "SELECT product_id, quantity FROM order_details WHERE order_id = ?";
+        $details_stmt = $conn->prepare($details_sql);
+        $details_stmt->bind_param("i", $order_id);
+        $details_stmt->execute();
+        $details_result = $details_stmt->get_result();
+        
+        $restore_stock_sql = "UPDATE products 
+                              SET stock_quantity = stock_quantity + ?, 
+                                  sold_quantity = sold_quantity - ? 
+                              WHERE product_id = ?";
+        $restore_stock_stmt = $conn->prepare($restore_stock_sql);
+        
+        while ($detail = $details_result->fetch_assoc()) {
+            $restore_stock_stmt->bind_param("iis", $detail['quantity'], $detail['quantity'], $detail['product_id']);
+            $restore_stock_stmt->execute();
+        }
+    }
+    
+    // Xóa chi tiết đơn hàng
+    $delete_details = $conn->prepare("DELETE FROM order_details WHERE order_id = ?");
+    $delete_details->bind_param("i", $order_id);
+    $delete_details->execute();
+    
+    // Xóa đơn hàng
+    $delete_order = $conn->prepare("DELETE FROM orders WHERE order_id = ?");
+    $delete_order->bind_param("i", $order_id);
+    
+    if($delete_order->execute()) {
+        $message = 'Xóa đơn hàng thành công!';
+        if ($order_status === 'Hoàn thành') {
+            $message .= ' Đã hoàn lại tồn kho.';
+        }
+        echo "<script>alert('$message'); window.location.href='admin_orders.php';</script>";
+    } else {
+        echo "<script>alert('Lỗi khi xóa đơn hàng: " . $conn->error . "');</script>";
+    }
+    $delete_order->close();
+}
+
 // Lấy danh sách đơn hàng
 $sql = "SELECT * FROM orders ORDER BY created_at DESC";
 $result = $conn->query($sql);
@@ -159,6 +212,13 @@ $result = $conn->query($sql);
                             <span class="view-details" onclick="toggleDetails(<?php echo $order['order_id']; ?>)">
                                 <i class="fas fa-eye"></i> Chi tiết
                             </span>
+                            <form method="POST" action="" style="display:inline-block;margin-left:10px;" onsubmit="return confirm('Bạn có chắc muốn xóa đơn hàng này? Hành động này không thể hoàn tác!');">
+                                <input type="hidden" name="order_id" value="<?php echo $order['order_id']; ?>">
+                                <input type="hidden" name="delete_order" value="1">
+                                <button type="submit" class="btn-delete-order" style="background:#dc3545;color:white;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;font-size:12px;">
+                                    <i class="fas fa-trash"></i> Xóa
+                                </button>
+                            </form>
                         </td>
                     </tr>
                     <tr>

@@ -42,6 +42,18 @@
             </a>
         </li>
         <li>
+            <a href="blog_posts.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'blog_posts.php' || basename($_SERVER['PHP_SELF']) == 'add_blog_post.php' || basename($_SERVER['PHP_SELF']) == 'edit_blog_post.php' ? 'active' : ''; ?>">
+                <i class="fas fa-newspaper"></i>
+                <span>Bài viết</span>
+            </a>
+        </li>
+        <li>
+            <a href="contact_messages.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'contact_messages.php' ? 'active' : ''; ?>">
+                <i class="fas fa-envelope"></i>
+                <span>Tin nhắn liên hệ</span>
+            </a>
+        </li>
+        <li>
             <a href="reports.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'reports.php' ? 'active' : ''; ?>">
                 <i class="fas fa-chart-bar"></i>
                 <span>Báo cáo</span>
