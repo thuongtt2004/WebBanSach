@@ -7,16 +7,20 @@ if (!isset($_SESSION['admin_id'])) {
 
 require_once('../config/connect.php');
 
+/** @var mysqli $conn */
+
 // Xử lý xóa nhà xuất bản
 if (isset($_GET['delete'])) {
     $publisher_id = $_GET['delete'];
     $delete_query = "DELETE FROM publishers WHERE publisher_id = ?";
     $stmt = $conn->prepare($delete_query);
-    $stmt->bind_param("i", $publisher_id);
-    if ($stmt->execute()) {
-        $message = "Xóa nhà xuất bản thành công!";
-    } else {
-        $message = "Lỗi: " . $stmt->error;
+    if ($stmt) {
+        $stmt->bind_param("i", $publisher_id);
+        if ($stmt->execute()) {
+            $message = "Xóa nhà xuất bản thành công!";
+        } else {
+            $message = "Lỗi khi xóa nhà xuất bản";
+        }
     }
 }
 
@@ -48,21 +52,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (!empty($logo)) {
             $update_query = "UPDATE publishers SET publisher_name=?, description=?, address=?, phone=?, email=?, website=?, logo=?, status=? WHERE publisher_id=?";
             $stmt = $conn->prepare($update_query);
-            $stmt->bind_param("ssssssssi", $publisher_name, $description, $address, $phone, $email, $website, $logo, $status, $publisher_id);
+            if ($stmt) {
+                $stmt->bind_param("ssssssssi", $publisher_name, $description, $address, $phone, $email, $website, $logo, $status, $publisher_id);
+                $stmt->execute();
+            }
         } else {
             $update_query = "UPDATE publishers SET publisher_name=?, description=?, address=?, phone=?, email=?, website=?, status=? WHERE publisher_id=?";
             $stmt = $conn->prepare($update_query);
-            $stmt->bind_param("sssssssi", $publisher_name, $description, $address, $phone, $email, $website, $status, $publisher_id);
+            if ($stmt) {
+                $stmt->bind_param("sssssssi", $publisher_name, $description, $address, $phone, $email, $website, $status, $publisher_id);
+                $stmt->execute();
+            }
         }
-        $stmt->execute();
         $message = "Cập nhật nhà xuất bản thành công!";
     } else {
         // Thêm mới
         $insert_query = "INSERT INTO publishers (publisher_name, description, address, phone, email, website, logo, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($insert_query);
-        $stmt->bind_param("ssssssss", $publisher_name, $description, $address, $phone, $email, $website, $logo, $status);
-        $stmt->execute();
-        $message = "Thêm nhà xuất bản thành công!";
+        if ($stmt) {
+            $stmt->bind_param("ssssssss", $publisher_name, $description, $address, $phone, $email, $website, $logo, $status);
+            $stmt->execute();
+            $message = "Thêm nhà xuất bản thành công!";
+        }
     }
 }
 
@@ -246,7 +257,7 @@ $result = $conn->query($query);
                     </tr>
                 </thead>
                 <tbody>
-                    <?php while ($publisher = $result->fetch_assoc()): ?>
+                    <?php if ($result): while ($publisher = $result->fetch_assoc()): ?>
                     <tr>
                         <td><?php echo $publisher['publisher_id']; ?></td>
                         <td>
@@ -280,7 +291,7 @@ $result = $conn->query($query);
                             </button>
                         </td>
                     </tr>
-                    <?php endwhile; ?>
+                    <?php endwhile; endif; ?>
                 </tbody>
             </table>
         </div>

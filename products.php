@@ -173,7 +173,7 @@ if (!$result) {
                                     class="add-to-cart">
                                 Thêm vào giỏ hàng
                             </button>
-                            <button onclick="window.location.href='order.php?id=<?php echo $row['product_id']; ?>'" 
+                            <button onclick="window.location.href='buy_now.php?id=<?php echo $row['product_id']; ?>'" 
                                     class="buy-now">
                                 Mua ngay
                             </button>

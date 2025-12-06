@@ -7,14 +7,18 @@ if (!isset($_SESSION['admin_id'])) {
 
 require_once('../config/connect.php');
 
+/** @var mysqli $conn */
+
 // Xử lý xóa bình luận
 if (isset($_GET['delete'])) {
     $comment_id = $_GET['delete'];
     $delete_query = "DELETE FROM blog_comments WHERE comment_id = ?";
     $stmt = $conn->prepare($delete_query);
-    $stmt->bind_param("i", $comment_id);
-    if ($stmt->execute()) {
-        $message = "Xóa bình luận thành công!";
+    if ($stmt) {
+        $stmt->bind_param("i", $comment_id);
+        if ($stmt->execute()) {
+            $message = "Xóa bình luận thành công!";
+        }
     }
 }
 
@@ -23,9 +27,11 @@ if (isset($_GET['approve'])) {
     $comment_id = $_GET['approve'];
     $update_query = "UPDATE blog_comments SET status = 'approved' WHERE comment_id = ?";
     $stmt = $conn->prepare($update_query);
-    $stmt->bind_param("i", $comment_id);
-    $stmt->execute();
-    $message = "Đã duyệt bình luận!";
+    if ($stmt) {
+        $stmt->bind_param("i", $comment_id);
+        $stmt->execute();
+        $message = "Đã duyệt bình luận!";
+    }
 }
 
 // Xử lý từ chối bình luận
@@ -33,9 +39,11 @@ if (isset($_GET['reject'])) {
     $comment_id = $_GET['reject'];
     $update_query = "UPDATE blog_comments SET status = 'rejected' WHERE comment_id = ?";
     $stmt = $conn->prepare($update_query);
-    $stmt->bind_param("i", $comment_id);
-    $stmt->execute();
-    $message = "Đã từ chối bình luận!";
+    if ($stmt) {
+        $stmt->bind_param("i", $comment_id);
+        $stmt->execute();
+        $message = "Đã từ chối bình luận!";
+    }
 }
 
 // Lấy danh sách bình luận
@@ -65,7 +73,8 @@ $result = $conn->query($query);
 $posts = $conn->query("SELECT post_id, title FROM blog_posts ORDER BY created_at DESC LIMIT 50");
 
 // Đếm bình luận chờ duyệt
-$pending_count = $conn->query("SELECT COUNT(*) as count FROM blog_comments WHERE status = 'pending'")->fetch_assoc()['count'];
+$pending_result = $conn->query("SELECT COUNT(*) as count FROM blog_comments WHERE status = 'pending'");
+$pending_count = $pending_result ? $pending_result->fetch_assoc()['count'] : 0;
 ?>
 
 <!DOCTYPE html>
@@ -253,13 +262,19 @@ $pending_count = $conn->query("SELECT COUNT(*) as count FROM blog_comments WHERE
             </div>
             <div class="stat-card">
                 <div class="number">
-                    <?php echo $conn->query("SELECT COUNT(*) as count FROM blog_comments WHERE status = 'approved'")->fetch_assoc()['count']; ?>
+                    <?php 
+                        $approved_result = $conn->query("SELECT COUNT(*) as count FROM blog_comments WHERE status = 'approved'");
+                        echo $approved_result ? $approved_result->fetch_assoc()['count'] : 0;
+                    ?>
                 </div>
                 <div class="label">Đã duyệt</div>
             </div>
             <div class="stat-card">
                 <div class="number">
-                    <?php echo $conn->query("SELECT COUNT(*) as count FROM blog_comments WHERE status = 'rejected'")->fetch_assoc()['count']; ?>
+                    <?php 
+                        $rejected_result = $conn->query("SELECT COUNT(*) as count FROM blog_comments WHERE status = 'rejected'");
+                        echo $rejected_result ? $rejected_result->fetch_assoc()['count'] : 0;
+                    ?>
                 </div>
                 <div class="label">Đã từ chối</div>
             </div>
@@ -269,11 +284,11 @@ $pending_count = $conn->query("SELECT COUNT(*) as count FROM blog_comments WHERE
             <input type="text" id="searchInput" placeholder="Tìm kiếm nội dung, tác giả..." value="<?php echo $search; ?>" style="flex: 1; min-width: 250px;">
             <select id="postFilter">
                 <option value="">Tất cả bài viết</option>
-                <?php while ($post = $posts->fetch_assoc()): ?>
+                <?php if ($posts): while ($post = $posts->fetch_assoc()): ?>
                     <option value="<?php echo $post['post_id']; ?>" <?php echo $post_filter == $post['post_id'] ? 'selected' : ''; ?>>
                         <?php echo htmlspecialchars($post['title']); ?>
                     </option>
-                <?php endwhile; ?>
+                <?php endwhile; endif; ?>
             </select>
             <select id="statusFilter">
                 <option value="">Tất cả trạng thái</option>
@@ -287,13 +302,13 @@ $pending_count = $conn->query("SELECT COUNT(*) as count FROM blog_comments WHERE
         </div>
 
         <div class="comments-list">
-            <?php if ($result->num_rows == 0): ?>
+            <?php if (!$result || $result->num_rows == 0): ?>
                 <div style="padding: 40px; text-align: center; color: #999;">
                     <i class="fas fa-comments fa-3x" style="margin-bottom: 15px;"></i>
                     <p>Chưa có bình luận nào</p>
                 </div>
             <?php else: ?>
-                <?php while ($comment = $result->fetch_assoc()): ?>
+                <?php if ($result): while ($comment = $result->fetch_assoc()): ?>
                 <div class="comment-item">
                     <div class="comment-header">
                         <div class="comment-author">
@@ -343,7 +358,7 @@ $pending_count = $conn->query("SELECT COUNT(*) as count FROM blog_comments WHERE
                         </button>
                     </div>
                 </div>
-                <?php endwhile; ?>
+                <?php endwhile; endif; ?>
             <?php endif; ?>
         </div>
     </div>

@@ -2,6 +2,8 @@
 session_start();
 require_once '../config/db.php';
 
+/** @var mysqli $conn */
+
 // Check admin authentication
 if (!isset($_SESSION['admin_id'])) {
     header('Location: login.php');
@@ -13,8 +15,10 @@ if (isset($_POST['delete_message'])) {
     $message_id = $_POST['message_id'];
     $delete_sql = "DELETE FROM contact_messages WHERE message_id = ?";
     $stmt = $conn->prepare($delete_sql);
-    $stmt->bind_param("i", $message_id);
-    $stmt->execute();
+    if ($stmt) {
+        $stmt->bind_param("i", $message_id);
+        $stmt->execute();
+    }
     header('Location: contact_messages.php?deleted=1');
     exit();
 }
@@ -24,8 +28,10 @@ if (isset($_POST['mark_read'])) {
     $message_id = $_POST['message_id'];
     $update_sql = "UPDATE contact_messages SET status = 'read' WHERE message_id = ?";
     $stmt = $conn->prepare($update_sql);
-    $stmt->bind_param("i", $message_id);
-    $stmt->execute();
+    if ($stmt) {
+        $stmt->bind_param("i", $message_id);
+        $stmt->execute();
+    }
 }
 
 // Handle reply
@@ -36,9 +42,11 @@ if (isset($_POST['send_reply'])) {
     if (!empty($reply_message)) {
         $reply_sql = "UPDATE contact_messages SET status = 'replied', reply_message = ?, replied_at = NOW() WHERE message_id = ?";
         $stmt = $conn->prepare($reply_sql);
-        $stmt->bind_param("si", $reply_message, $message_id);
-        $stmt->execute();
-        $success_message = "Đã gửi phản hồi thành công!";
+        if ($stmt) {
+            $stmt->bind_param("si", $reply_message, $message_id);
+            $stmt->execute();
+            $success_message = "Đã gửi phản hồi thành công!";
+        }
     }
 }
 
@@ -73,21 +81,29 @@ $where_sql = !empty($where_clauses) ? "WHERE " . implode(" AND ", $where_clauses
 $count_sql = "SELECT COUNT(*) as total FROM contact_messages $where_sql";
 if (!empty($params)) {
     $stmt = $conn->prepare($count_sql);
-    $stmt->bind_param($types, ...$params);
-    $stmt->execute();
-    $count_result = $stmt->get_result();
+    if ($stmt) {
+        $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        $count_result = $stmt->get_result();
+    }
 } else {
     $count_result = $conn->query($count_sql);
 }
-$total_messages = $count_result->fetch_assoc()['total'];
+if ($count_result) {
+    $total_messages = $count_result->fetch_assoc()['total'];
+} else {
+    $total_messages = 0;
+}
 
 // Get messages
 $sql = "SELECT * FROM contact_messages $where_sql ORDER BY created_at DESC";
 if (!empty($params)) {
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param($types, ...$params);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    if ($stmt) {
+        $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        $result = $stmt->get_result();
+    }
 } else {
     $result = $conn->query($sql);
 }

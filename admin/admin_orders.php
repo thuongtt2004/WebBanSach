@@ -19,16 +19,21 @@ if(isset($_POST['order_id']) && isset($_POST['status'])) {
     $old_status_stmt->bind_param("i", $order_id);
     $old_status_stmt->execute();
     $old_status_result = $old_status_stmt->get_result();
-    $old_status = $old_status_result->fetch_assoc()['order_status'];
+    $order_data = $old_status_result->fetch_assoc();
+    $old_status = $order_data['order_status'];
     
-    $message = 'Cập nhật trạng thái thành công!';
-    
-    // Lấy chi tiết đơn hàng
-    $details_sql = "SELECT product_id, quantity FROM order_details WHERE order_id = ?";
-    $details_stmt = $conn->prepare($details_sql);
-    $details_stmt->bind_param("i", $order_id);
-    $details_stmt->execute();
-    $details_result = $details_stmt->get_result();
+    // Kiểm tra nếu đơn hàng đã hoàn thành hoặc đã hủy thì không cho phép thay đổi
+    if ($old_status === 'Hoàn thành' || $old_status === 'Đã hủy') {
+        $error = 'Không thể thay đổi trạng thái đơn hàng đã hoàn thành hoặc đã hủy!';
+    } else {
+        $message = 'Cập nhật trạng thái thành công!';
+        
+        // Lấy chi tiết đơn hàng
+        $details_sql = "SELECT product_id, quantity FROM order_details WHERE order_id = ?";
+        $details_stmt = $conn->prepare($details_sql);
+        $details_stmt->bind_param("i", $order_id);
+        $details_stmt->execute();
+        $details_result = $details_stmt->get_result();
     
     // Chuyển sang trạng thái "Hoàn thành" - Trừ tồn kho và tăng đã bán
     if ($new_status === 'Hoàn thành' && $old_status !== 'Hoàn thành') {
@@ -84,6 +89,7 @@ if(isset($_POST['order_id']) && isset($_POST['status'])) {
         echo "<script>alert('Lỗi khi cập nhật: " . $conn->error . "');</script>";
     }
     $stmt->close();
+    }
 }
 
 // Xử lý xóa đơn hàng
@@ -153,10 +159,17 @@ $result = $conn->query($sql);
     <link rel="stylesheet" href="../css/admin.css">
     <link rel="stylesheet" href="../css/admin_orders.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <?php include 'admin_header.php'; ?>
+    
+    <?php if(isset($message)): ?>
+        <div class="alert alert-success"><?php echo $message; ?></div>
+    <?php endif; ?>
+    
+    <?php if(isset($error)): ?>
+        <div class="alert alert-error"><?php echo $error; ?></div>
+    <?php endif; ?>
 
     <main>       
     <div class="admin-orders">
@@ -193,9 +206,12 @@ $result = $conn->query($sql);
                         </td>
                         <td><?php echo date('d/m/Y H:i', strtotime($order['created_at'])); ?></td>
                         <td>
+                            <?php 
+                            $is_locked = ($order['order_status'] === 'Hoàn thành' || $order['order_status'] === 'Đã hủy');
+                            ?>
                             <form method="POST" action="" style="display: flex; align-items: center; gap: 5px;">
                                 <input type="hidden" name="order_id" value="<?php echo $order['order_id']; ?>">
-                                <select name="status" class="status-select">
+                                <select name="status" class="status-select" <?php echo $is_locked ? 'disabled' : ''; ?>>
                                     <option value="Chờ thanh toán" <?php if($order['order_status'] == 'Chờ thanh toán') echo 'selected'; ?>>Chờ thanh toán</option>
                                     <option value="Chờ xác nhận" <?php if($order['order_status'] == 'Chờ xác nhận') echo 'selected'; ?>>Chờ xác nhận</option>
                                     <option value="Đã xác nhận" <?php if($order['order_status'] == 'Đã xác nhận') echo 'selected'; ?>>Đã xác nhận</option>
@@ -203,8 +219,8 @@ $result = $conn->query($sql);
                                     <option value="Hoàn thành" <?php if($order['order_status'] == 'Hoàn thành') echo 'selected'; ?>>Hoàn thành</option>
                                     <option value="Đã hủy" <?php if($order['order_status'] == 'Đã hủy') echo 'selected'; ?>>Đã hủy</option>
                                 </select>
-                                <button type="submit" class="btn-update-status">
-                                    <i class="fas fa-save"></i> Lưu
+                                <button type="submit" class="btn-update-status" <?php echo $is_locked ? 'disabled' : ''; ?>>
+                                    <i class="fas fa-save"></i> <?php echo $is_locked ? 'Đã khóa' : 'Lưu'; ?>
                                 </button>
                             </form>
                         </td>

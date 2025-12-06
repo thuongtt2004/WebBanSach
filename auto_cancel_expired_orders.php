@@ -66,6 +66,29 @@ if ($is_direct_call) {
             'cancelled_count' => 0
         ]);
     }
+    
+    // Gọi auto confirm orders - cập nhật completed_date và xác nhận
+    $update_completed_sql = "UPDATE orders 
+                             SET completed_date = created_at 
+                             WHERE order_status = 'Hoàn thành' 
+                             AND completed_date IS NULL";
+    $conn->query($update_completed_sql);
+    
+    $confirm_sql = "UPDATE orders 
+                    SET customer_confirmed = 1 
+                    WHERE order_status = 'Hoàn thành' 
+                    AND customer_confirmed = 0 
+                    AND (
+                        (completed_date IS NOT NULL AND DATEDIFF(NOW(), completed_date) >= 7)
+                        OR (completed_date IS NULL AND DATEDIFF(NOW(), created_at) >= 7)
+                    )";
+    $confirm_result = $conn->query($confirm_sql);
+    $confirmed_count = $confirm_result ? $conn->affected_rows : 0;
+    
+    if ($confirmed_count > 0) {
+        echo "\n✓ Đã tự động xác nhận hài lòng cho $confirmed_count đơn hàng";
+    }
+    
     $conn->close();
 }
 

@@ -15,7 +15,8 @@ $response = [
     'discount' => 0,
     'total' => 0,
     'applied_promotions' => [],
-    'message' => ''
+    'message' => '',
+    'debug' => []
 ];
 
 if (empty($cart_items)) {
@@ -23,6 +24,8 @@ if (empty($cart_items)) {
     echo json_encode($response);
     exit;
 }
+
+$response['debug'][] = 'Số sản phẩm trong giỏ: ' . count($cart_items);
 
 // Tính tổng tiền gốc
 $subtotal = 0;
@@ -47,6 +50,9 @@ foreach ($cart_items as $item) {
 }
 
 $response['subtotal'] = $subtotal;
+$response['debug'][] = 'Subtotal: ' . $subtotal;
+$response['debug'][] = 'Coupon code: ' . $coupon_code;
+
 $now = date('Y-m-d H:i:s');
 $total_discount = 0;
 $applied_promotions = [];
@@ -63,6 +69,8 @@ $flash_query = "SELECT * FROM promotions
                 AND min_order_amount <= $subtotal
                 ORDER BY discount_value DESC";
 $flash_result = $conn->query($flash_query);
+$response['debug'][] = 'Flash sale query: ' . $flash_query;
+$response['debug'][] = 'Flash sale found: ' . $flash_result->num_rows;
 while ($promo = $flash_result->fetch_assoc()) {
     $applicable_promotions[] = $promo;
 }
@@ -120,6 +128,7 @@ while ($promo = $minimum_order_result->fetch_assoc()) {
 
 // 2. Xử lý mã giảm giá (coupon)
 if (!empty($coupon_code)) {
+    $response['debug'][] = 'Checking coupon: ' . $coupon_code;
     $coupon_query = $conn->prepare("SELECT * FROM promotions 
                                     WHERE promotion_type = 'coupon' 
                                     AND promotion_code = ?
@@ -131,11 +140,15 @@ if (!empty($coupon_code)) {
     $coupon_query->execute();
     $coupon_result = $coupon_query->get_result();
     
+    $response['debug'][] = 'Coupon found: ' . $coupon_result->num_rows;
+    
     if ($coupon_result->num_rows > 0) {
         $coupon = $coupon_result->fetch_assoc();
         $applicable_promotions[] = $coupon;
+        $response['debug'][] = 'Coupon applied: ' . $coupon['promotion_name'];
     } else {
         $response['message'] = 'Mã giảm giá không hợp lệ hoặc đã hết hạn';
+        $response['debug'][] = 'Coupon invalid';
     }
     $coupon_query->close();
 }
@@ -182,9 +195,15 @@ usort($promotion_discounts, function($a, $b) {
 
 // Áp dụng khuyến mãi tốt nhất (hoặc có thể cho phép stack nhiều khuyến mãi)
 // Hiện tại: chỉ áp dụng 1 khuyến mãi tốt nhất
+$response['debug'][] = 'Applicable promotions count: ' . count($applicable_promotions);
+$response['debug'][] = 'Promotion discounts count: ' . count($promotion_discounts);
+
 if (!empty($promotion_discounts)) {
     $best_promotion = $promotion_discounts[0];
     $total_discount = $best_promotion['discount'];
+    
+    $response['debug'][] = 'Best promotion: ' . $best_promotion['promotion']['promotion_name'];
+    $response['debug'][] = 'Discount amount: ' . $total_discount;
     
     $applied_promotions[] = [
         'promotion_id' => $best_promotion['promotion']['promotion_id'],
@@ -198,6 +217,9 @@ if (!empty($promotion_discounts)) {
     
     $response['success'] = true;
     $response['message'] = 'Đã áp dụng khuyến mãi: ' . $best_promotion['promotion']['promotion_name'];
+} else {
+    $response['message'] = 'Không có khuyến mãi phù hợp';
+    $response['debug'][] = 'No promotions available';
 }
 
 // 4. Tính tổng cuối cùng

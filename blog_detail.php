@@ -10,7 +10,10 @@ if (empty($slug)) {
 }
 
 // Lấy bài viết
-$sql = "SELECT * FROM blog_posts WHERE slug = ? AND status = 'published'";
+$sql = "SELECT bp.*, bc.category_name, bc.slug as category_slug 
+        FROM blog_posts bp 
+        LEFT JOIN blog_categories bc ON bp.category_id = bc.category_id 
+        WHERE bp.slug = ? AND bp.status = 'published'";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("s", $slug);
 $stmt->execute();
@@ -30,10 +33,10 @@ $stmt_views->execute();
 
 // Lấy bài viết liên quan
 $related_sql = "SELECT * FROM blog_posts 
-                WHERE category = ? AND post_id != ? AND status = 'published' 
+                WHERE category_id = ? AND post_id != ? AND status = 'published' 
                 ORDER BY published_at DESC LIMIT 3";
 $stmt_related = $conn->prepare($related_sql);
-$stmt_related->bind_param("si", $post['category'], $post['post_id']);
+$stmt_related->bind_param("ii", $post['category_id'], $post['post_id']);
 $stmt_related->execute();
 $related_posts = $stmt_related->get_result();
 
@@ -41,7 +44,7 @@ $related_posts = $stmt_related->get_result();
 $comments_sql = "SELECT bc.*, u.username, u.full_name 
                  FROM blog_comments bc 
                  LEFT JOIN users u ON bc.user_id = u.user_id 
-                 WHERE bc.post_id = ? AND bc.status = 'approved' AND bc.parent_comment_id IS NULL
+                 WHERE bc.post_id = ? AND bc.status = 'approved' AND bc.parent_id IS NULL
                  ORDER BY bc.created_at DESC";
 $stmt_comments = $conn->prepare($comments_sql);
 $stmt_comments->bind_param("i", $post['post_id']);
@@ -52,7 +55,7 @@ $comments = $stmt_comments->get_result();
 $replies_sql = "SELECT bc.*, u.username, u.full_name 
                 FROM blog_comments bc 
                 LEFT JOIN users u ON bc.user_id = u.user_id 
-                WHERE bc.parent_comment_id = ? AND bc.status = 'approved'
+                WHERE bc.parent_id = ? AND bc.status = 'approved'
                 ORDER BY bc.created_at ASC";
 
 // Đếm tổng số comments
@@ -94,8 +97,8 @@ $total_comments = $count_result->fetch_assoc()['total'];
             <!-- Header -->
             <header class="article-header">
                 <div class="article-category">
-                    <a href="blog.php?category=<?php echo urlencode($post['category']); ?>">
-                        <?php echo htmlspecialchars($post['category']); ?>
+                    <a href="blog.php?category=<?php echo $post['category_id']; ?>">
+                        <?php echo htmlspecialchars($post['category_name']); ?>
                     </a>
                 </div>
                 
@@ -173,7 +176,7 @@ $total_comments = $count_result->fetch_assoc()['total'];
                     <form method="POST" action="submit_blog_comment.php" class="comment-form">
                         <input type="hidden" name="post_id" value="<?php echo $post['post_id']; ?>">
                         <input type="hidden" name="slug" value="<?php echo $post['slug']; ?>">
-                        <input type="hidden" name="parent_comment_id" id="parentCommentId" value="">
+                        <input type="hidden" name="parent_id" id="parentCommentId" value="">
                         
                         <?php if (!isset($_SESSION['user_id'])): ?>
                             <div class="form-row">
@@ -225,7 +228,7 @@ $total_comments = $count_result->fetch_assoc()['total'];
                                             if ($comment['user_id']) {
                                                 echo htmlspecialchars($comment['full_name'] ?: $comment['username']);
                                             } else {
-                                                echo htmlspecialchars($comment['guest_name']);
+                                                echo htmlspecialchars($comment['author_name']);
                                             }
                                             ?>
                                         </span>
@@ -241,10 +244,10 @@ $total_comments = $count_result->fetch_assoc()['total'];
                                         </span>
                                     </div>
                                     <div class="comment-content">
-                                        <?php echo nl2br(htmlspecialchars($comment['comment_content'])); ?>
+                                        <?php echo nl2br(htmlspecialchars($comment['content'])); ?>
                                     </div>
                                     <div class="comment-actions">
-                                        <button class="btn-reply" onclick="replyToComment(<?php echo $comment['comment_id']; ?>, '<?php echo htmlspecialchars($comment['user_id'] ? ($comment['full_name'] ?: $comment['username']) : $comment['guest_name']); ?>')">
+                                        <button class="btn-reply" onclick="replyToComment(<?php echo $comment['comment_id']; ?>, '<?php echo htmlspecialchars($comment['user_id'] ? ($comment['full_name'] ?: $comment['username']) : $comment['author_name']); ?>')">
                                             <i class="fas fa-reply"></i> Trả lời
                                         </button>
                                     </div>
@@ -271,7 +274,7 @@ $total_comments = $count_result->fetch_assoc()['total'];
                                                                 if ($reply['user_id']) {
                                                                     echo htmlspecialchars($reply['full_name'] ?: $reply['username']);
                                                                 } else {
-                                                                    echo htmlspecialchars($reply['guest_name']);
+                                                                    echo htmlspecialchars($reply['author_name']);
                                                                 }
                                                                 ?>
                                                             </span>
@@ -287,7 +290,7 @@ $total_comments = $count_result->fetch_assoc()['total'];
                                                             </span>
                                                         </div>
                                                         <div class="comment-content">
-                                                            <?php echo nl2br(htmlspecialchars($reply['comment_content'])); ?>
+                                                            <?php echo nl2br(htmlspecialchars($reply['content'])); ?>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -698,6 +701,7 @@ $total_comments = $count_result->fetch_assoc()['total'];
             color: #333;
             display: -webkit-box;
             -webkit-line-clamp: 2;
+            line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }

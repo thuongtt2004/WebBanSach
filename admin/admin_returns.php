@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../config/connect.php';
+/** @var mysqli $conn */
 
 // Kiểm tra đăng nhập admin
 if (!isset($_SESSION['admin_id'])) {
@@ -16,38 +17,50 @@ if (isset($_POST['process_return'])) {
     
     if ($action === 'approve') {
         // Duyệt trả hàng - hoàn lại tồn kho
-        $conn->begin_transaction();
+        if (method_exists($conn, 'begin_transaction')) {
+            $conn->begin_transaction();
+        }
         
         try {
             // Lấy chi tiết đơn hàng
             $details_sql = "SELECT product_id, quantity FROM order_details WHERE order_id = ?";
             $details_stmt = $conn->prepare($details_sql);
-            $details_stmt->bind_param("i", $order_id);
-            $details_stmt->execute();
-            $details_result = $details_stmt->get_result();
-            
-            // Hoàn lại tồn kho
-            $restore_stock_sql = "UPDATE products 
-                                  SET stock_quantity = stock_quantity + ?, 
-                                      sold_quantity = sold_quantity - ? 
-                                  WHERE product_id = ?";
-            $restore_stock_stmt = $conn->prepare($restore_stock_sql);
-            
-            while ($detail = $details_result->fetch_assoc()) {
-                $restore_stock_stmt->bind_param("iis", $detail['quantity'], $detail['quantity'], $detail['product_id']);
-                $restore_stock_stmt->execute();
+            if ($details_stmt) {
+                $details_stmt->bind_param("i", $order_id);
+                $details_stmt->execute();
+                $details_result = $details_stmt->get_result();
+                
+                // Hoàn lại tồn kho
+                $restore_stock_sql = "UPDATE products 
+                                      SET stock_quantity = stock_quantity + ?, 
+                                          sold_quantity = GREATEST(0, sold_quantity - ?) 
+                                      WHERE product_id = ?";
+                $restore_stock_stmt = $conn->prepare($restore_stock_sql);
+                
+                if ($restore_stock_stmt) {
+                    while ($detail = $details_result->fetch_assoc()) {
+                        $restore_stock_stmt->bind_param("iis", $detail['quantity'], $detail['quantity'], $detail['product_id']);
+                        $restore_stock_stmt->execute();
+                    }
+                }
+                
+                // Cập nhật trạng thái yêu cầu
+                $update_sql = "UPDATE orders SET return_status = 'Đã duyệt', order_status = 'Đã trả hàng' WHERE order_id = ?";
+                $update_stmt = $conn->prepare($update_sql);
+                if ($update_stmt) {
+                    $update_stmt->bind_param("i", $order_id);
+                    $update_stmt->execute();
+                }
             }
             
-            // Cập nhật trạng thái yêu cầu
-            $update_sql = "UPDATE orders SET return_status = 'Đã duyệt', order_status = 'Đã trả hàng' WHERE order_id = ?";
-            $update_stmt = $conn->prepare($update_sql);
-            $update_stmt->bind_param("i", $order_id);
-            $update_stmt->execute();
-            
-            $conn->commit();
+            if (method_exists($conn, 'commit')) {
+                $conn->commit();
+            }
             $success_message = "Đã duyệt yêu cầu trả hàng và hoàn lại tồn kho!";
         } catch (Exception $e) {
-            $conn->rollback();
+            if (method_exists($conn, 'rollback')) {
+                $conn->rollback();
+            }
             $error_message = "Lỗi: " . $e->getMessage();
         }
         
@@ -199,10 +212,12 @@ $return_result = $conn->query($return_sql);
                 </div>
             <?php endif; ?>
 
-            <?php if ($return_result->num_rows > 0): ?>
+            <?php if ($return_result && $return_result->num_rows > 0): ?>
                 <?php while ($request = $return_result->fetch_assoc()): 
+                    // Xử lý status NULL hoặc 'Chờ duyệt'
+                    $return_status = $request['return_status'] ?? 'Chờ duyệt';
                     $status_class = '';
-                    switch($request['return_status']) {
+                    switch($return_status) {
                         case 'Chờ duyệt': $status_class = 'pending'; break;
                         case 'Đã duyệt': $status_class = 'approved'; break;
                         case 'Từ chối': $status_class = 'rejected'; break;
@@ -221,7 +236,7 @@ $return_result = $conn->query($return_sql);
                             </p>
                         </div>
                         <span class="return-status status-<?php echo $status_class; ?>">
-                            <?php echo $request['return_status']; ?>
+                            <?php echo $return_status; ?>
                         </span>
                     </div>
                     
@@ -246,7 +261,7 @@ $return_result = $conn->query($return_sql);
                         </div>
                     </div>
                     
-                    <?php if ($request['return_status'] === 'Chờ duyệt'): ?>
+                    <?php if ($return_status === 'Chờ duyệt' || $return_status === null): ?>
                     <div class="return-actions">
                         <form method="POST" style="display:inline;" onsubmit="return confirm('Xác nhận duyệt yêu cầu trả hàng? Tồn kho sẽ được hoàn lại.')">
                             <input type="hidden" name="order_id" value="<?php echo $request['order_id']; ?>">
@@ -279,7 +294,3 @@ $return_result = $conn->query($return_sql);
     <?php include 'admin_footer.php'; ?>
 </body>
 </html>
-
-<?php
-$conn->close();
-?>

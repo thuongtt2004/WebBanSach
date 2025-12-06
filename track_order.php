@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once 'config/connect.php';
+/** @var mysqli $conn */
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: login_page.php');
@@ -103,11 +104,13 @@ $return_days_limit = 7;
                                          JOIN products p ON od.product_id = p.product_id 
                                          WHERE od.order_id = ?";
                             $detail_stmt = $conn->prepare($detail_sql);
-                            $detail_stmt->bind_param("i", $order['order_id']);
-                            $detail_stmt->execute();
-                            $details = $detail_stmt->get_result();
-                            
-                            while ($detail = $details->fetch_assoc()):
+                            if ($detail_stmt) {
+                                $detail_stmt->bind_param("i", $order['order_id']);
+                                $detail_stmt->execute();
+                                $details = $detail_stmt->get_result();
+                                
+                                if ($details && $details->num_rows > 0) {
+                                    while ($detail = $details->fetch_assoc()):
                             ?>
                                 <div class="product-item">
                                     <img src="<?php echo htmlspecialchars($detail['image_url']); ?>" 
@@ -118,7 +121,15 @@ $return_days_limit = 7;
                                         <p>Giá: <?php echo number_format($detail['price'], 0, ',', '.'); ?> VNĐ</p>
                                     </div>
                                 </div>
-                            <?php endwhile; ?>
+                            <?php 
+                                    endwhile;
+                                } else {
+                                    echo '<p style="color:#999;padding:20px;text-align:center;">Không có sản phẩm trong đơn hàng này</p>';
+                                }
+                            } else {
+                                echo '<p style="color:red;">Lỗi truy vấn chi tiết đơn hàng</p>';
+                            }
+                            ?>
                         </div>
 
                         <div class="total-amount">
@@ -207,11 +218,13 @@ $return_days_limit = 7;
                                           LEFT JOIN reviews r ON r.product_id = p.product_id AND r.user_id = ?
                                           WHERE od.order_id = ?";
                             $detail_stmt = $conn->prepare($detail_sql);
-                            $detail_stmt->bind_param("ii", $_SESSION['user_id'], $order['order_id']);
-                            $detail_stmt->execute();
-                            $details = $detail_stmt->get_result();
-                            
-                            while ($detail = $details->fetch_assoc()):
+                            if ($detail_stmt) {
+                                $detail_stmt->bind_param("ii", $_SESSION['user_id'], $order['order_id']);
+                                $detail_stmt->execute();
+                                $details = $detail_stmt->get_result();
+                                
+                                if ($details && $details->num_rows > 0) {
+                                    while ($detail = $details->fetch_assoc()):
                             ?>
                                 <div class="product-review">
                                     <img src="<?php echo htmlspecialchars($detail['image_url']); ?>" 
@@ -244,7 +257,13 @@ $return_days_limit = 7;
                                         <?php endif; ?>
                                     </div>
                                 </div>
-                            <?php endwhile; ?>
+                            <?php 
+                                    endwhile;
+                                } else {
+                                    echo '<p style="color:#999;padding:20px;text-align:center;">Không có sản phẩm trong đơn hàng này</p>';
+                                }
+                            }
+                            ?>
                         </div>
                     <?php endif; ?>
                 </div>

@@ -1,4 +1,7 @@
 <?php
+// Set timezone cho Việt Nam
+date_default_timezone_set('Asia/Ho_Chi_Minh');
+
 $servername = "localhost";
 $username = "root"; // Thay bằng username của bạn
 $password = ""; // Thay bằng password của bạn

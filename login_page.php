@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $update_stmt->bind_param("i", $admin['admin_id']);
             $update_stmt->execute();
 
-            header('Location: dashboard.php');
+            header('Location: admin/dashboard.php');
             exit();
         } elseif ($user && password_verify($password, $user['password'])) {
             $_SESSION['user_id'] = $user['user_id'];
@@ -74,7 +74,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['address'] = $user['address'];
             $_SESSION['role'] = 'user';
             
-            header('Location: home.php');
+            // Redirect về trang trước đó nếu có
+            $redirect = isset($_SESSION['redirect_after_login']) ? $_SESSION['redirect_after_login'] : 'home.php';
+            unset($_SESSION['redirect_after_login']);
+            header('Location: ' . $redirect);
             exit();
         } else {
             $error = 'Tên đăng nhập hoặc mật khẩu không chính xác';

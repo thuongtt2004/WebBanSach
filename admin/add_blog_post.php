@@ -2,6 +2,8 @@
 session_start();
 require_once '../config/db.php';
 
+/** @var mysqli $conn */
+
 if (!isset($_SESSION['admin_id'])) {
     header('Location: login.php');
     exit();
@@ -15,14 +17,16 @@ $post = null;
 if ($is_edit) {
     $sql = "SELECT * FROM blog_posts WHERE post_id = ?";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $post_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $post = $result->fetch_assoc();
-    
-    if (!$post) {
-        header('Location: blog_posts.php');
-        exit();
+    if ($stmt) {
+        $stmt->bind_param("i", $post_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $post = $result->fetch_assoc();
+        
+        if (!$post) {
+            header('Location: blog_posts.php');
+            exit();
+        }
     }
 }
 
@@ -77,17 +81,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                        published_at = IF(status = 'published' AND published_at IS NULL, NOW(), published_at)
                        WHERE post_id = ?";
         $stmt = $conn->prepare($update_sql);
-        $stmt->bind_param("sssssssi", $title, $slug, $content, $excerpt, $featured_image, $category, $status, $post_id);
+        if ($stmt) {
+            $stmt->bind_param("sssssssi", $title, $slug, $content, $excerpt, $featured_image, $category, $status, $post_id);
+        }
     } else {
         // Thêm bài viết mới
         $published_at = $status === 'published' ? date('Y-m-d H:i:s') : null;
         $insert_sql = "INSERT INTO blog_posts (title, slug, content, excerpt, featured_image, category, author_id, status, published_at) 
                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($insert_sql);
-        $stmt->bind_param("sssssssss", $title, $slug, $content, $excerpt, $featured_image, $category, $author_id, $status, $published_at);
+        if ($stmt) {
+            $stmt->bind_param("sssssssss", $title, $slug, $content, $excerpt, $featured_image, $category, $author_id, $status, $published_at);
+        }
     }
     
-    if ($stmt->execute()) {
+    if (isset($stmt) && $stmt->execute()) {
         $message = $is_edit ? 'Cập nhật bài viết thành công!' : 'Thêm bài viết thành công!';
         echo "<script>alert('$message'); window.location.href='blog_posts.php';</script>";
     } else {
@@ -159,12 +167,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="form-group col-6">
                         <label for="category">Danh mục</label>
                         <select id="category" name="category" class="form-control">
-                            <?php while ($cat = $categories_result->fetch_assoc()): ?>
+                            <?php if ($categories_result): while ($cat = $categories_result->fetch_assoc()): ?>
                                 <option value="<?php echo htmlspecialchars($cat['category_name']); ?>"
                                         <?php echo ($is_edit && $post['category'] === $cat['category_name']) ? 'selected' : ''; ?>>
                                     <?php echo htmlspecialchars($cat['category_name']); ?>
                                 </option>
-                            <?php endwhile; ?>
+                            <?php endwhile; endif; ?>
                         </select>
                     </div>
                     

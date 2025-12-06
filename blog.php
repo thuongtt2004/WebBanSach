@@ -2,22 +2,25 @@
 require_once 'config/db.php';
 
 // Lấy tham số lọc
-$category = isset($_GET['category']) ? $_GET['category'] : '';
+$category = isset($_GET['category']) && is_numeric($_GET['category']) ? (int)$_GET['category'] : 0;
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
 // Build SQL query
-$sql = "SELECT * FROM blog_posts WHERE status = 'published'";
+$sql = "SELECT bp.*, bc.category_name as category 
+        FROM blog_posts bp 
+        LEFT JOIN blog_categories bc ON bp.category_id = bc.category_id 
+        WHERE bp.status = 'published'";
 $params = [];
 $types = '';
 
-if (!empty($category)) {
-    $sql .= " AND category = ?";
+if ($category > 0) {
+    $sql .= " AND bp.category_id = ?";
     $params[] = $category;
-    $types .= 's';
+    $types .= 'i';
 }
 
 if (!empty($search)) {
-    $sql .= " AND (title LIKE ? OR excerpt LIKE ? OR content LIKE ?)";
+    $sql .= " AND (bp.title LIKE ? OR bp.excerpt LIKE ? OR bp.content LIKE ?)";
     $search_param = "%$search%";
     $params[] = $search_param;
     $params[] = $search_param;
@@ -25,7 +28,7 @@ if (!empty($search)) {
     $types .= 'sss';
 }
 
-$sql .= " ORDER BY published_at DESC, created_at DESC";
+$sql .= " ORDER BY bp.published_at DESC, bp.created_at DESC";
 
 $stmt = $conn->prepare($sql);
 if (!empty($params)) {
@@ -121,10 +124,19 @@ $categories_result = $conn->query($categories_sql);
                         <article class="blog-card">
                             <?php if ($post['featured_image']): ?>
                                 <div class="blog-card-image">
-                                    <img src="<?php echo htmlspecialchars($post['featured_image']); ?>" 
-                                         alt="<?php echo htmlspecialchars($post['title']); ?>">
+                                    <?php 
+                                    // Xử lý đường dẫn hình ảnh - thêm prefix uploads/blog/
+                                    $image_path = $post['featured_image'];
+                                    // Nếu không phải URL đầy đủ và không bắt đầu bằng uploads/
+                                    if (!preg_match('/^(https?:\/\/|uploads\/)/i', $image_path)) {
+                                        $image_path = 'uploads/blog/' . $image_path;
+                                    }
+                                    ?>
+                                    <img src="<?php echo htmlspecialchars($image_path); ?>" 
+                                         alt="<?php echo htmlspecialchars($post['title']); ?>"
+                                         onerror="this.src='images/no-image.jpg'">
                                     <span class="blog-category-badge">
-                                        <?php echo htmlspecialchars($post['category']); ?>
+                                        <?php echo htmlspecialchars($post['category'] ?? 'Chưa phân loại'); ?>
                                     </span>
                                 </div>
                             <?php endif; ?>

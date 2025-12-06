@@ -7,12 +7,14 @@ if (!isset($_SESSION['admin_id'])) {
 
 require_once('../config/connect.php');
 
+/** @var mysqli $conn */
+
 // Lấy thống kê từ CSDL
 $stats = [
-    'total_products' => $conn->query("SELECT COUNT(*) as count FROM products")->fetch_assoc()['count'],
-    'total_orders' => $conn->query("SELECT COUNT(*) as count FROM orders")->fetch_assoc()['count'],
-    'total_users' => $conn->query("SELECT COUNT(*) as count FROM users")->fetch_assoc()['count'],
-    'total_revenue' => $conn->query("SELECT SUM(total_amount) as sum FROM orders WHERE order_status = 'Hoàn thành'")->fetch_assoc()['sum']
+    'total_products' => ($r = $conn->query("SELECT COUNT(*) as count FROM products")) ? $r->fetch_assoc()['count'] : 0,
+    'total_orders' => ($r = $conn->query("SELECT COUNT(*) as count FROM orders")) ? $r->fetch_assoc()['count'] : 0,
+    'total_users' => ($r = $conn->query("SELECT COUNT(*) as count FROM users")) ? $r->fetch_assoc()['count'] : 0,
+    'total_revenue' => ($r = $conn->query("SELECT SUM(total_amount) as sum FROM orders WHERE order_status = 'Hoàn thành'")) ? $r->fetch_assoc()['sum'] : 0
 ];
 
 // Tính tháng trước

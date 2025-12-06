@@ -34,8 +34,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Xử lý upload hình ảnh
     if (isset($_FILES['product-image']) && $_FILES['product-image']['error'] == 0) {
-        $targetDir = "uploads/";
-        $fileName = time() . '_' . basename($_FILES["product-image"]["name"]);
+        // Lấy danh sách tác giả và NXB cho dropdown
+        $authors_list = $conn->query("SELECT author_id, author_name FROM authors ORDER BY author_name ASC");
+        $publishers_list = $conn->query("SELECT publisher_id, publisher_name FROM publishers ORDER BY publisher_name ASC");
+
+        $author = $_POST['author'] ?? null;
+        $publisher = $_POST['publisher'] ?? null;
         $targetFile = $targetDir . $fileName;
         $imageFileType = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
         
@@ -63,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($stmt->execute()) {
         echo "<script>
             alert('Thêm sản phẩm thành công!');
-            window.location.href = 'admin_products.php';
+            window.location.href = 'admin/admin_products.php';
         </script>";
     } else {
         echo "<script>alert('Lỗi: " . $stmt->error . "');</script>";
@@ -141,15 +145,71 @@ $categories = $conn->query("SELECT * FROM categories");
             padding-bottom: 10px;
             border-bottom: 2px solid #007bff;
         }
+        
+        /* Searchable Select Style */
+        .searchable-select {
+            position: relative;
+        }
+        .searchable-select input[type="text"] {
+            width: 100%;
+            padding: 10px 35px 10px 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .searchable-select .search-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            pointer-events: none;
+        }
+        .searchable-select .dropdown-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 250px;
+            overflow-y: auto;
+            background: white;
+            border: 2px solid #007bff;
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .searchable-select .dropdown-list.show {
+            display: block;
+        }
+        .searchable-select .dropdown-item {
+            padding: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s ease;
+        }
+        .searchable-select .dropdown-item:hover {
+            background: #f8f9fa;
+        }
+        .searchable-select .dropdown-item.no-results {
+            color: #999;
+            cursor: default;
+            text-align: center;
+        }
+        .searchable-select .dropdown-item.no-results:hover {
+            background: white;
+        }
     </style>
 </head>
 <body>
-    <?php include 'admin_header.php'; ?>
+    <?php include 'admin/admin_header.php'; ?>
     
     <main>
     <div class="container" style="max-width: 1000px; margin: 40px auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
         <h2><i class="fas fa-book-medical"></i> Thêm Sách Mới</h2>
-        <form method="POST" enctype="multipart/form-data">
+        
+        <form method="POST" enctype="multipart/form-data" action="">
             <div class="form-grid">
                 <!-- Thông tin cơ bản -->
                 <div class="section-title"><i class="fas fa-info-circle"></i> Thông tin cơ bản</div>
@@ -164,14 +224,41 @@ $categories = $conn->query("SELECT * FROM categories");
                     <input type="text" id="product-name" name="product-name" placeholder="VD: Đắc Nhân Tâm" required>
                 </div>
 
+
                 <div class="form-group">
                     <label for="author">Tác giả <span style="color:red;">*</span></label>
-                    <input type="text" id="author" name="author" placeholder="VD: Dale Carnegie" required>
+                    <div class="searchable-select">
+                        <input type="text" id="authorSearch" placeholder="Tìm kiếm tác giả..." autocomplete="off">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="hidden" name="author" id="authorValue" required>
+                        <div class="dropdown-list" id="authorDropdown">
+                            <?php 
+                            $authors_list = $conn->query("SELECT author_id, author_name FROM authors ORDER BY author_name ASC");
+                            while($a = $authors_list->fetch_assoc()): ?>
+                                <div class="dropdown-item" data-value="<?php echo htmlspecialchars($a['author_name']); ?>">
+                                    <?php echo htmlspecialchars($a['author_name']); ?>
+                                </div>
+                            <?php endwhile; ?>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="publisher">Nhà xuất bản</label>
-                    <input type="text" id="publisher" name="publisher" placeholder="VD: NXB Trẻ">
+                    <label for="publisher">Nhà xuất bản <span style="color:red;">*</span></label>
+                    <div class="searchable-select">
+                        <input type="text" id="publisherSearch" placeholder="Tìm kiếm NXB..." autocomplete="off">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="hidden" name="publisher" id="publisherValue" required>
+                        <div class="dropdown-list" id="publisherDropdown">
+                            <?php 
+                            $publishers_list = $conn->query("SELECT publisher_id, publisher_name FROM publishers ORDER BY publisher_name ASC");
+                            while($p = $publishers_list->fetch_assoc()): ?>
+                                <div class="dropdown-item" data-value="<?php echo htmlspecialchars($p['publisher_name']); ?>">
+                                    <?php echo htmlspecialchars($p['publisher_name']); ?>
+                                </div>
+                            <?php endwhile; ?>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -272,7 +359,7 @@ $categories = $conn->query("SELECT * FROM categories");
                 <button type="submit" class="submit-btn" style="flex: 1; padding: 15px; background: #28a745; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
                     <i class="fas fa-save"></i> Thêm sách
                 </button>
-                <a href="admin_products.php" style="flex: 1; padding: 15px; background: #6c757d; color: white; border: none; border-radius: 8px; font-weight: 600; text-align: center; text-decoration: none; display: block;">
+                <a href="admin/admin_products.php" style="flex: 1; padding: 15px; background: #6c757d; color: white; border: none; border-radius: 8px; font-weight: 600; text-align: center; text-decoration: none; display: block;">
                     <i class="fas fa-times"></i> Hủy
                 </a>
             </div>
@@ -281,6 +368,84 @@ $categories = $conn->query("SELECT * FROM categories");
     </main>
 
     <script>
+        // Searchable Select Component
+        function initSearchableSelect(searchInputId, dropdownId, hiddenInputId) {
+            const searchInput = document.getElementById(searchInputId);
+            const dropdown = document.getElementById(dropdownId);
+            const hiddenInput = document.getElementById(hiddenInputId);
+            const items = dropdown.querySelectorAll('.dropdown-item:not(.no-results)');
+            
+            // Show dropdown when input is focused
+            searchInput.addEventListener('focus', function() {
+                dropdown.classList.add('show');
+                filterItems('');
+            });
+            
+            // Hide dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!searchInput.closest('.searchable-select').contains(e.target)) {
+                    dropdown.classList.remove('show');
+                }
+            });
+            
+            // Filter items when typing
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                filterItems(searchTerm);
+                dropdown.classList.add('show');
+                
+                // Clear hidden value when typing
+                if (hiddenInput.value && this.value !== hiddenInput.value) {
+                    hiddenInput.value = '';
+                }
+            });
+            
+            // Select item when clicked
+            items.forEach(item => {
+                item.addEventListener('click', function() {
+                    const value = this.getAttribute('data-value');
+                    searchInput.value = value;
+                    hiddenInput.value = value;
+                    dropdown.classList.remove('show');
+                });
+            });
+            
+            // Filter function
+            function filterItems(searchTerm) {
+                let visibleCount = 0;
+                
+                items.forEach(item => {
+                    const text = item.textContent.toLowerCase();
+                    if (text.includes(searchTerm)) {
+                        item.style.display = 'block';
+                        visibleCount++;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+                
+                // Show no results message
+                let noResultsDiv = dropdown.querySelector('.no-results');
+                if (visibleCount === 0) {
+                    if (!noResultsDiv) {
+                        noResultsDiv = document.createElement('div');
+                        noResultsDiv.className = 'dropdown-item no-results';
+                        noResultsDiv.textContent = 'Không tìm thấy kết quả';
+                        dropdown.appendChild(noResultsDiv);
+                    }
+                    noResultsDiv.style.display = 'block';
+                } else {
+                    if (noResultsDiv) {
+                        noResultsDiv.style.display = 'none';
+                    }
+                }
+            }
+        }
+
+        // Initialize both searchable selects
+        initSearchableSelect('authorSearch', 'authorDropdown', 'authorValue');
+        initSearchableSelect('publisherSearch', 'publisherDropdown', 'publisherValue');
+
         // Preview hình ảnh trước khi upload
         document.getElementById('product-image').onchange = function(evt) {
             const [file] = this.files;

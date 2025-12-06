@@ -140,13 +140,13 @@ $bestsellers_result = $conn->query($bestsellers_query);
     <section id="home">
         <div class="slideshow-container">
             <div class="mySlides fade">
-                <img src="images/banner1.jpg" style="width:100%">
+                <img src="uploads/banner1.png" style="width:100%">
             </div>
             <div class="mySlides fade">
-                <img src="images/banner2.jpg" style="width:100%">
+                <img src="uploads/banner3.png" style="width:100%">
             </div>
             <div class="mySlides fade">
-                <img src="images/banner3.jpg" style="width:100%">
+                <img src="uploads/banner2.png" style="width:100%">
             </div>
         </div>
         <h2>Chào mừng đến với TTHUONG Bookstore</h2>
@@ -209,7 +209,7 @@ $bestsellers_result = $conn->query($bestsellers_query);
                                         class="btn-add-cart">
                                     <i class="fas fa-cart-plus"></i> Thêm vào giỏ
                                 </button>
-                                <button onclick="event.stopPropagation(); window.location.href='order.php?id=<?php echo $book['product_id']; ?>'" 
+                                <button onclick="event.stopPropagation(); window.location.href='buy_now.php?id=<?php echo $book['product_id']; ?>'" 
                                         class="btn-buy-now">
                                     Mua ngay
                                 </button>
@@ -266,7 +266,7 @@ $bestsellers_result = $conn->query($bestsellers_query);
                                     class="add-to-cart">
                                 Thêm vào giỏ hàng
                             </button>
-                            <button onclick="event.stopPropagation(); window.location.href='order.php?id=<?php echo $row['product_id']; ?>'" 
+                            <button onclick="event.stopPropagation(); window.location.href='buy_now.php?id=<?php echo $row['product_id']; ?>'" 
                                     class="buy-now">
                                 Mua ngay
                             </button>

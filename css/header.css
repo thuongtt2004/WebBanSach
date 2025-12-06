@@ -168,6 +168,7 @@
     padding: 0 2rem;
     list-style: none;
     display: flex;
+    justify-content: center;
     gap: 0.5rem;
 }
 

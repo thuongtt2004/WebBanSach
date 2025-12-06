@@ -9,7 +9,7 @@ if (!isset($_SESSION['admin_id'])) {
 }
 
 // Tự động hủy đơn hàng quá hạn 24h
-require_once 'auto_cancel_expired_orders.php';
+require_once __DIR__ . '/../auto_cancel_expired_orders.php';
 
 // Lấy danh sách đơn hàng chờ thanh toán
 $sql = "SELECT * FROM orders 

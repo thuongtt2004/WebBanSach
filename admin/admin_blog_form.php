@@ -7,14 +7,21 @@ if (!isset($_SESSION['admin_id'])) {
 
 require_once('../config/connect.php');
 
+/** @var mysqli $conn */
+
 $post_id = isset($_GET['id']) ? $_GET['id'] : null;
 $post = null;
 
 if ($post_id) {
     $stmt = $conn->prepare("SELECT * FROM blog_posts WHERE post_id = ?");
-    $stmt->bind_param("i", $post_id);
-    $stmt->execute();
-    $post = $stmt->get_result()->fetch_assoc();
+    if ($stmt) {
+        $stmt->bind_param("i", $post_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($result) {
+            $post = $result->fetch_assoc();
+        }
+    }
 }
 
 // Xử lý submit form
@@ -45,16 +52,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Cập nhật
         $update_query = "UPDATE blog_posts SET title=?, slug=?, content=?, excerpt=?, featured_image=?, category_id=?, author_id=?, status=?, published_at=? WHERE post_id=?";
         $stmt = $conn->prepare($update_query);
-        $stmt->bind_param("sssssiiisi", $title, $slug, $content, $excerpt, $featured_image, $category_id, $author_id, $status, $published_at, $post_id);
-        $stmt->execute();
+        if ($stmt) {
+            $stmt->bind_param("sssssiiisi", $title, $slug, $content, $excerpt, $featured_image, $category_id, $author_id, $status, $published_at, $post_id);
+            $stmt->execute();
+        }
         header('Location: admin_blog_posts.php');
         exit();
     } else {
         // Thêm mới
         $insert_query = "INSERT INTO blog_posts (title, slug, content, excerpt, featured_image, category_id, author_id, status, published_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($insert_query);
-        $stmt->bind_param("sssssiiis", $title, $slug, $content, $excerpt, $featured_image, $category_id, $author_id, $status, $published_at);
-        $stmt->execute();
+        if ($stmt) {
+            $stmt->bind_param("sssssiiis", $title, $slug, $content, $excerpt, $featured_image, $category_id, $author_id, $status, $published_at);
+            $stmt->execute();
+        }
         header('Location: admin_blog_posts.php');
         exit();
     }
@@ -73,7 +84,7 @@ $authors = $conn->query("SELECT * FROM authors WHERE status = 'active'");
     <title><?php echo $post ? 'Sửa' : 'Thêm'; ?> bài viết</title>
     <link rel="stylesheet" href="../css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js"></script>
     <style>
         .form-container {
             padding: 20px;
@@ -189,12 +200,12 @@ $authors = $conn->query("SELECT * FROM authors WHERE status = 'active'");
                         <label>Danh mục</label>
                         <select name="category_id">
                             <option value="">-- Chọn danh mục --</option>
-                            <?php while ($cat = $categories->fetch_assoc()): ?>
+                            <?php if ($categories): while ($cat = $categories->fetch_assoc()): ?>
                                 <option value="<?php echo $cat['category_id']; ?>" 
                                     <?php echo ($post && $post['category_id'] == $cat['category_id']) ? 'selected' : ''; ?>>
                                     <?php echo $cat['category_name']; ?>
                                 </option>
-                            <?php endwhile; ?>
+                            <?php endwhile; endif; ?>
                         </select>
                     </div>
 
@@ -202,12 +213,12 @@ $authors = $conn->query("SELECT * FROM authors WHERE status = 'active'");
                         <label>Tác giả</label>
                         <select name="author_id">
                             <option value="">-- Admin --</option>
-                            <?php while ($author = $authors->fetch_assoc()): ?>
+                            <?php if ($authors): while ($author = $authors->fetch_assoc()): ?>
                                 <option value="<?php echo $author['author_id']; ?>" 
                                     <?php echo ($post && $post['author_id'] == $author['author_id']) ? 'selected' : ''; ?>>
                                     <?php echo $author['author_name']; ?>
                                 </option>
-                            <?php endwhile; ?>
+                            <?php endwhile; endif; ?>
                         </select>
                     </div>
                 </div>

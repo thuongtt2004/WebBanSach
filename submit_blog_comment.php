@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
 $slug = isset($_POST['slug']) ? trim($_POST['slug']) : '';
 $comment_content = isset($_POST['comment_content']) ? trim($_POST['comment_content']) : '';
-$parent_comment_id = isset($_POST['parent_comment_id']) && !empty($_POST['parent_comment_id']) ? intval($_POST['parent_comment_id']) : null;
+$parent_id = isset($_POST['parent_id']) && !empty($_POST['parent_id']) ? intval($_POST['parent_id']) : null;
 
 // Validation
 if ($post_id <= 0) {
@@ -35,36 +35,36 @@ if (mb_strlen($comment_content) > 1000) {
 
 // Check if user is logged in
 $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
-$guest_name = null;
-$guest_email = null;
+$author_name = null;
+$author_email = null;
 
 if (!$user_id) {
     // Guest comment - require name and email
-    $guest_name = isset($_POST['guest_name']) ? trim($_POST['guest_name']) : '';
-    $guest_email = isset($_POST['guest_email']) ? trim($_POST['guest_email']) : '';
+    $author_name = isset($_POST['guest_name']) ? trim($_POST['guest_name']) : '';
+    $author_email = isset($_POST['guest_email']) ? trim($_POST['guest_email']) : '';
     
-    if (empty($guest_name)) {
+    if (empty($author_name)) {
         header("Location: blog_detail.php?slug=$slug&comment_error=" . urlencode('Vui lòng nhập tên của bạn'));
         exit;
     }
     
-    if (empty($guest_email) || !filter_var($guest_email, FILTER_VALIDATE_EMAIL)) {
+    if (empty($author_email) || !filter_var($author_email, FILTER_VALIDATE_EMAIL)) {
         header("Location: blog_detail.php?slug=$slug&comment_error=" . urlencode('Vui lòng nhập email hợp lệ'));
         exit;
     }
 }
 
 // Insert comment
-$sql = "INSERT INTO blog_comments (post_id, user_id, guest_name, guest_email, comment_content, parent_comment_id, status, created_at) 
+$sql = "INSERT INTO blog_comments (post_id, user_id, author_name, author_email, content, parent_id, status, created_at) 
         VALUES (?, ?, ?, ?, ?, ?, 'approved', NOW())";
 
 $stmt = $conn->prepare($sql);
 
 // Handle NULL values properly
-if ($parent_comment_id === null) {
-    $parent_comment_id_bind = null;
+if ($parent_id === null) {
+    $parent_id_bind = null;
 } else {
-    $parent_comment_id_bind = $parent_comment_id;
+    $parent_id_bind = $parent_id;
 }
 
 if ($user_id === null) {
@@ -73,7 +73,7 @@ if ($user_id === null) {
     $user_id_bind = $user_id;
 }
 
-$stmt->bind_param("iisssi", $post_id, $user_id_bind, $guest_name, $guest_email, $comment_content, $parent_comment_id_bind);
+$stmt->bind_param("iisssi", $post_id, $user_id_bind, $author_name, $author_email, $comment_content, $parent_id_bind);
 
 if ($stmt->execute()) {
     header("Location: blog_detail.php?slug=$slug&comment_success=1#comments");

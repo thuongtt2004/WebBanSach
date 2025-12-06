@@ -2,6 +2,8 @@
 session_start();
 require_once '../config/db.php';
 
+/** @var mysqli $conn */
+
 // Kiểm tra đăng nhập admin
 if (!isset($_SESSION['admin_id'])) {
     header('Location: login.php');
@@ -13,9 +15,11 @@ if (isset($_POST['delete_post'])) {
     $post_id = intval($_POST['post_id']);
     $delete_sql = "DELETE FROM blog_posts WHERE post_id = ?";
     $stmt = $conn->prepare($delete_sql);
-    $stmt->bind_param("i", $post_id);
-    if ($stmt->execute()) {
-        echo "<script>alert('Xóa bài viết thành công!'); window.location.href='blog_posts.php';</script>";
+    if ($stmt) {
+        $stmt->bind_param("i", $post_id);
+        if ($stmt->execute()) {
+            echo "<script>alert('Xóa bài viết thành công!'); window.location.href='blog_posts.php';</script>";
+        }
     }
 }
 

@@ -7,16 +7,20 @@ if (!isset($_SESSION['admin_id'])) {
 
 require_once('../config/connect.php');
 
+/** @var mysqli $conn */
+
 // Xử lý xóa tác giả
 if (isset($_GET['delete'])) {
     $author_id = $_GET['delete'];
     $delete_query = "DELETE FROM authors WHERE author_id = ?";
     $stmt = $conn->prepare($delete_query);
-    $stmt->bind_param("i", $author_id);
-    if ($stmt->execute()) {
-        $message = "Xóa tác giả thành công!";
-    } else {
-        $message = "Lỗi: " . $stmt->error;
+    if ($stmt) {
+        $stmt->bind_param("i", $author_id);
+        if ($stmt->execute()) {
+            $message = "Xóa tác giả thành công!";
+        } else {
+            $message = "Lỗi: " . $stmt->error;
+        }
     }
 }
 
@@ -50,21 +54,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (!empty($photo)) {
             $update_query = "UPDATE authors SET author_name=?, pen_name=?, biography=?, birth_date=?, nationality=?, email=?, website=?, awards=?, photo=?, status=? WHERE author_id=?";
             $stmt = $conn->prepare($update_query);
-            $stmt->bind_param("ssssssssssi", $author_name, $pen_name, $biography, $birth_date, $nationality, $email, $website, $awards, $photo, $status, $author_id);
+            if ($stmt) {
+                $stmt->bind_param("ssssssssssi", $author_name, $pen_name, $biography, $birth_date, $nationality, $email, $website, $awards, $photo, $status, $author_id);
+                $stmt->execute();
+            }
         } else {
             $update_query = "UPDATE authors SET author_name=?, pen_name=?, biography=?, birth_date=?, nationality=?, email=?, website=?, awards=?, status=? WHERE author_id=?";
             $stmt = $conn->prepare($update_query);
-            $stmt->bind_param("sssssssssi", $author_name, $pen_name, $biography, $birth_date, $nationality, $email, $website, $awards, $status, $author_id);
+            if ($stmt) {
+                $stmt->bind_param("sssssssssi", $author_name, $pen_name, $biography, $birth_date, $nationality, $email, $website, $awards, $status, $author_id);
+                $stmt->execute();
+            }
         }
-        $stmt->execute();
         $message = "Cập nhật tác giả thành công!";
     } else {
         // Thêm mới
         $insert_query = "INSERT INTO authors (author_name, pen_name, biography, birth_date, nationality, email, website, awards, photo, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($insert_query);
-        $stmt->bind_param("ssssssssss", $author_name, $pen_name, $biography, $birth_date, $nationality, $email, $website, $awards, $photo, $status);
-        $stmt->execute();
-        $message = "Thêm tác giả thành công!";
+        if ($stmt) {
+            $stmt->bind_param("ssssssssss", $author_name, $pen_name, $biography, $birth_date, $nationality, $email, $website, $awards, $photo, $status);
+            $stmt->execute();
+            $message = "Thêm tác giả thành công!";
+        }
     }
 }
 
@@ -82,7 +93,7 @@ if ($nationality_filter) {
 $query .= " ORDER BY created_at DESC";
 $result = $conn->query($query);
 
-// Lấy danh sách quốc t적
+// Lấy danh sách quốc tịch
 $nationalities = $conn->query("SELECT DISTINCT nationality FROM authors WHERE nationality IS NOT NULL ORDER BY nationality");
 ?>
 
@@ -249,11 +260,11 @@ $nationalities = $conn->query("SELECT DISTINCT nationality FROM authors WHERE na
             <input type="text" id="searchInput" placeholder="Tìm kiếm theo tên, bút danh..." value="<?php echo $search; ?>">
             <select id="nationalityFilter">
                 <option value="">Tất cả quốc tịch</option>
-                <?php while ($nat = $nationalities->fetch_assoc()): ?>
+                <?php if ($nationalities): while ($nat = $nationalities->fetch_assoc()): ?>
                     <option value="<?php echo $nat['nationality']; ?>" <?php echo $nationality_filter == $nat['nationality'] ? 'selected' : ''; ?>>
                         <?php echo $nat['nationality']; ?>
                     </option>
-                <?php endwhile; ?>
+                <?php endwhile; endif; ?>
             </select>
             <button class="btn btn-primary" onclick="searchAuthors()">
                 <i class="fas fa-search"></i> Tìm kiếm
@@ -275,7 +286,7 @@ $nationalities = $conn->query("SELECT DISTINCT nationality FROM authors WHERE na
                     </tr>
                 </thead>
                 <tbody>
-                    <?php while ($author = $result->fetch_assoc()): ?>
+                    <?php if ($result): while ($author = $result->fetch_assoc()): ?>
                     <tr>
                         <td><?php echo $author['author_id']; ?></td>
                         <td>
@@ -306,7 +317,7 @@ $nationalities = $conn->query("SELECT DISTINCT nationality FROM authors WHERE na
                             </button>
                         </td>
                     </tr>
-                    <?php endwhile; ?>
+                    <?php endwhile; endif; ?>
                 </tbody>
             </table>
         </div>

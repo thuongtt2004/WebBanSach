@@ -7,14 +7,18 @@ if (!isset($_SESSION['admin_id'])) {
 
 require_once('../config/connect.php');
 
+/** @var mysqli $conn */
+
 // Xử lý xóa bài viết
 if (isset($_GET['delete'])) {
     $post_id = $_GET['delete'];
     $delete_query = "DELETE FROM blog_posts WHERE post_id = ?";
     $stmt = $conn->prepare($delete_query);
-    $stmt->bind_param("i", $post_id);
-    if ($stmt->execute()) {
-        $message = "Xóa bài viết thành công!";
+    if ($stmt) {
+        $stmt->bind_param("i", $post_id);
+        if ($stmt->execute()) {
+            $message = "Xóa bài viết thành công!";
+        }
     }
 }
 
@@ -24,8 +28,10 @@ if (isset($_GET['toggle_status'])) {
     $new_status = $_GET['status'];
     $update_query = "UPDATE blog_posts SET status = ? WHERE post_id = ?";
     $stmt = $conn->prepare($update_query);
-    $stmt->bind_param("si", $new_status, $post_id);
-    $stmt->execute();
+    if ($stmt) {
+        $stmt->bind_param("si", $new_status, $post_id);
+        $stmt->execute();
+    }
 }
 
 // Lấy danh sách bài viết
@@ -33,10 +39,9 @@ $search = isset($_GET['search']) ? $_GET['search'] : '';
 $category_filter = isset($_GET['category']) ? $_GET['category'] : '';
 $status_filter = isset($_GET['status']) ? $_GET['status'] : '';
 
-$query = "SELECT bp.*, bc.category_name, a.author_name 
+$query = "SELECT bp.*, bc.category_name 
           FROM blog_posts bp 
           LEFT JOIN blog_categories bc ON bp.category_id = bc.category_id 
-          LEFT JOIN authors a ON bp.author_id = a.author_id 
           WHERE 1=1";
 
 if ($search) {
@@ -50,6 +55,12 @@ if ($status_filter) {
 }
 $query .= " ORDER BY bp.created_at DESC";
 $result = $conn->query($query);
+
+// Debug
+if (!$result) {
+    echo "<!-- Query Error: " . $conn->error . " -->";
+    echo "<!-- Query: " . htmlspecialchars($query) . " -->";
+}
 
 // Lấy danh mục
 $categories = $conn->query("SELECT * FROM blog_categories WHERE status = 'active'");
@@ -195,11 +206,11 @@ $categories = $conn->query("SELECT * FROM blog_categories WHERE status = 'active
             <input type="text" id="searchInput" placeholder="Tìm kiếm tiêu đề, nội dung..." value="<?php echo $search; ?>" style="flex: 1; min-width: 250px;">
             <select id="categoryFilter">
                 <option value="">Tất cả danh mục</option>
-                <?php while ($cat = $categories->fetch_assoc()): ?>
+                <?php if ($categories): while ($cat = $categories->fetch_assoc()): ?>
                     <option value="<?php echo $cat['category_id']; ?>" <?php echo $category_filter == $cat['category_id'] ? 'selected' : ''; ?>>
                         <?php echo $cat['category_name']; ?>
                     </option>
-                <?php endwhile; ?>
+                <?php endwhile; endif; ?>
             </select>
             <select id="statusFilter">
                 <option value="">Tất cả trạng thái</option>
@@ -227,7 +238,8 @@ $categories = $conn->query("SELECT * FROM blog_categories WHERE status = 'active
                     </tr>
                 </thead>
                 <tbody>
-                    <?php while ($post = $result->fetch_assoc()): ?>
+                    <?php if ($result && $result->num_rows > 0): ?>
+                        <?php while ($post = $result->fetch_assoc()): ?>
                     <tr>
                         <td><?php echo $post['post_id']; ?></td>
                         <td>
@@ -245,7 +257,7 @@ $categories = $conn->query("SELECT * FROM blog_categories WHERE status = 'active
                             <small style="color: #666;"><?php echo date('d/m/Y H:i', strtotime($post['created_at'])); ?></small>
                         </td>
                         <td><?php echo $post['category_name'] ?: '-'; ?></td>
-                        <td><?php echo $post['author_name'] ?: 'Admin'; ?></td>
+                        <td>Admin</td>
                         <td>
                             <div class="post-stats">
                                 <span><i class="fas fa-eye"></i> <?php echo $post['views']; ?></span>
@@ -256,10 +268,10 @@ $categories = $conn->query("SELECT * FROM blog_categories WHERE status = 'active
                             </div>
                         </td>
                         <td>
-                            <span class="status-badge status-<?php echo $post['status']; ?>">
+                            <span class="status-badge status-<?php echo $post['status'] ?? 'draft'; ?>">
                                 <?php 
                                     $status_text = ['published' => 'Đã xuất bản', 'draft' => 'Bản nháp', 'archived' => 'Lưu trữ'];
-                                    echo $status_text[$post['status']];
+                                    echo $status_text[$post['status']] ?? 'Không xác định';
                                 ?>
                             </span>
                         </td>
@@ -281,7 +293,15 @@ $categories = $conn->query("SELECT * FROM blog_categories WHERE status = 'active
                             </button>
                         </td>
                     </tr>
-                    <?php endwhile; ?>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 40px; color: #999;">
+                            <i class="fas fa-inbox fa-3x" style="margin-bottom: 15px; display: block;"></i>
+                            <p>Chưa có bài viết nào. Hãy thêm bài viết mới!</p>
+                        </td>
+                    </tr>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>

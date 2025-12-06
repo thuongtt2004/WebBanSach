@@ -5,7 +5,7 @@ if (!isset($_SESSION['admin_id'])) {
     exit();
 }
 
-require_once('config/connect.php');
+require_once __DIR__ . '/../config/connect.php';
 
 // Lấy tháng và năm hiện tại hoặc từ tham số
 $current_month = isset($_GET['month']) ? (int)$_GET['month'] : date('n');

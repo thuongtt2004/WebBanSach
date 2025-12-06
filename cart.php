@@ -456,6 +456,9 @@ $user = $user_stmt->get_result()->fetch_assoc();
                 
                 const data = await response.json();
                 
+                // Debug log
+                console.log('Promotion Response:', data);
+                
                 if (data.success && data.applied_promotions.length > 0) {
                     const promo = data.applied_promotions[0];
                     window.appliedPromotionData = promo;

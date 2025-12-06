@@ -9,16 +9,21 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Lấy danh sách sản phẩm đã mua thành công
-$sql = "SELECT DISTINCT p.*, od.order_id, o.order_date, o.order_status
+// Lấy danh sách sản phẩm đã mua thành công VÀ đã xác nhận hài lòng
+$sql = "SELECT DISTINCT p.product_id, p.product_name, p.image_url, p.price, 
+        o.order_id, o.order_date, o.order_status, o.completed_date
         FROM products p
         JOIN order_details od ON p.product_id = od.product_id
         JOIN orders o ON od.order_id = o.order_id
-        WHERE o.user_id = ? AND o.order_status IN ('Đã giao hàng', 'Hoàn thành')
+        WHERE o.user_id = ? 
+        AND o.order_status = 'Hoàn thành'
+        AND o.customer_confirmed = 1
         AND NOT EXISTS (
             SELECT 1 FROM reviews r 
             WHERE r.user_id = ? AND r.product_id = p.product_id
-        )";
+        )
+        GROUP BY p.product_id
+        ORDER BY o.completed_date DESC";
 
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("ii", $user_id, $user_id);

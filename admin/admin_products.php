@@ -2,6 +2,8 @@
 session_start();
 require_once '../config/connect.php';
 
+/** @var mysqli $conn */
+
 if (!isset($_SESSION['admin_id'])) {
     header('Location: ../login_page.php');
     exit();
@@ -16,26 +18,34 @@ if (isset($_POST['delete_product'])) {
         error_log("Đang xóa sản phẩm ID: " . $product_id);
         
         // Bắt đầu transaction
-        $conn->begin_transaction();
+        if (method_exists($conn, 'begin_transaction')) {
+            $conn->begin_transaction();
+        }
         
         // Sử dụng Prepared Statement để tránh SQL injection
         $delete_query = $conn->prepare("DELETE FROM products WHERE product_id = ?");
-        $delete_query->bind_param("s", $product_id);
-        
-        if ($delete_query->execute()) {
-            $conn->commit();
-            echo "<script>
-                alert('Xóa sản phẩm ID: " . $product_id . " thành công!');
-                window.location.href = 'admin_products.php';
-            </script>";
-        } else {
-            throw new Exception($conn->error);
+        if ($delete_query) {
+            $delete_query->bind_param("s", $product_id);
+            
+            if ($delete_query->execute()) {
+                if (method_exists($conn, 'commit')) {
+                    $conn->commit();
+                }
+                echo "<script>
+                    alert('Xóa sản phẩm ID: " . $product_id . " thành công!');
+                    window.location.href = 'admin_products.php';
+                </script>";
+            } else {
+                throw new Exception("Lỗi khi xóa sản phẩm");
+            }
+            
+            $delete_query->close();
         }
         
-        $delete_query->close();
-        
     } catch (Exception $e) {
-        $conn->rollback();
+        if (method_exists($conn, 'rollback')) {
+            $conn->rollback();
+        }
         echo "<script>
             alert('Lỗi khi xóa sản phẩm: " . $e->getMessage() . "');
             window.location.href = 'admin_products.php';
@@ -64,14 +74,16 @@ if (isset($_POST['update_product'])) {
     $description = trim($_POST['description']);
 
     $stmt = $conn->prepare("UPDATE products SET product_name = ?, author = ?, publisher = ?, publish_year = ?, isbn = ?, pages = ?, language = ?, book_format = ?, dimensions = ?, weight = ?, series = ?, price = ?, stock_quantity = ?, sold_quantity = ?, category_id = ?, description = ? WHERE product_id = ?");
-    $stmt->bind_param("sssisssssidiiidis", $product_name, $author, $publisher, $publish_year, $isbn, $pages, $language, $book_format, $dimensions, $weight, $series, $price, $stock_quantity, $sold_quantity, $category_id, $description, $product_id);
+    if ($stmt) {
+        $stmt->bind_param("sssisssssidiiidis", $product_name, $author, $publisher, $publish_year, $isbn, $pages, $language, $book_format, $dimensions, $weight, $series, $price, $stock_quantity, $sold_quantity, $category_id, $description, $product_id);
 
-    if ($stmt->execute()) {
-        echo "<script>alert('Cập nhật sách thành công!');</script>";
-    } else {
-        echo "<script>alert('Lỗi khi cập nhật sách: " . $conn->error . "');</script>";
+        if ($stmt->execute()) {
+            echo "<script>alert('Cập nhật sách thành công!');</script>";
+        } else {
+            echo "<script>alert('Lỗi khi cập nhật sách');</script>";
+        }
+        $stmt->close();
     }
-    $stmt->close();
 }
 
 // Lấy danh sách sản phẩm
@@ -85,8 +97,30 @@ $result = $conn->query($sql);
 $categories_sql = "SELECT * FROM categories";
 $categories_result = $conn->query($categories_sql);
 $categories = [];
-while ($category = $categories_result->fetch_assoc()) {
-    $categories[] = $category;
+if ($categories_result) {
+    while ($category = $categories_result->fetch_assoc()) {
+        $categories[] = $category;
+    }
+}
+
+// Lấy danh sách tác giả
+$authors_sql = "SELECT author_id, author_name FROM authors ORDER BY author_name ASC";
+$authors_result = $conn->query($authors_sql);
+$authors = [];
+if ($authors_result) {
+    while ($author = $authors_result->fetch_assoc()) {
+        $authors[] = $author;
+    }
+}
+
+// Lấy danh sách nhà xuất bản
+$publishers_sql = "SELECT publisher_id, publisher_name FROM publishers ORDER BY publisher_name ASC";
+$publishers_result = $conn->query($publishers_sql);
+$publishers = [];
+if ($publishers_result) {
+    while ($publisher = $publishers_result->fetch_assoc()) {
+        $publishers[] = $publisher;
+    }
 }
 ?>
 
@@ -100,6 +134,59 @@ while ($category = $categories_result->fetch_assoc()) {
     <link rel="stylesheet" href="../css/admin_products.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        .searchable-select-wrapper {
+            position: relative;
+        }
+        
+        .searchable-select-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .searchable-select-input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0,123,255,0.1);
+        }
+        
+        .searchable-select-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        
+        .searchable-select-dropdown.show {
+            display: block;
+        }
+        
+        .searchable-select-item {
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .searchable-select-item:hover {
+            background: #f0f0f0;
+        }
+        
+        .searchable-select-item.hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <?php include 'admin_header.php'; ?>
@@ -128,7 +215,7 @@ while ($category = $categories_result->fetch_assoc()) {
                 </tr>
             </thead>
             <tbody>
-                <?php while($row = $result->fetch_assoc()): ?>
+                <?php if ($result): while($row = $result->fetch_assoc()): ?>
                     <tr>
                         <td><?php echo $row['product_id']; ?></td>
                         <td><?php echo $row['product_name']; ?></td>
@@ -149,7 +236,7 @@ while ($category = $categories_result->fetch_assoc()) {
                             </form>
                         </td>
                     </tr>
-                <?php endwhile; ?>
+                <?php endwhile; endif; ?>
             </tbody>
         </table>
     </div>
@@ -173,12 +260,41 @@ while ($category = $categories_result->fetch_assoc()) {
                 
                 <div class="form-group">
                     <label>Tác giả <span style="color:red;">*</span></label>
-                    <input type="text" name="author" id="edit_author" required>
+                    <div class="searchable-select-wrapper">
+                        <input type="text" 
+                               name="author" 
+                               id="edit_author" 
+                               class="searchable-select-input"
+                               placeholder="Tìm kiếm hoặc nhập tên tác giả..."
+                               autocomplete="off"
+                               required>
+                        <div class="searchable-select-dropdown" id="edit_author_dropdown">
+                            <?php foreach($authors as $author): ?>
+                                <div class="searchable-select-item" data-value="<?php echo htmlspecialchars($author['author_name']); ?>">
+                                    <?php echo htmlspecialchars($author['author_name']); ?>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="form-group">
                     <label>Nhà xuất bản</label>
-                    <input type="text" name="publisher" id="edit_publisher">
+                    <div class="searchable-select-wrapper">
+                        <input type="text" 
+                               name="publisher" 
+                               id="edit_publisher" 
+                               class="searchable-select-input"
+                               placeholder="Tìm kiếm hoặc nhập tên NXB..."
+                               autocomplete="off">
+                        <div class="searchable-select-dropdown" id="edit_publisher_dropdown">
+                            <?php foreach($publishers as $publisher): ?>
+                                <div class="searchable-select-item" data-value="<?php echo htmlspecialchars($publisher['publisher_name']); ?>">
+                                    <?php echo htmlspecialchars($publisher['publisher_name']); ?>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="form-group">
@@ -327,13 +443,77 @@ while ($category = $categories_result->fetch_assoc()) {
                 modal.style.display = 'none';
             }
         }
+        
+        // Khởi tạo searchable select cho tác giả và NXB
+        function initSearchableSelect(inputId, dropdownId) {
+            const input = document.getElementById(inputId);
+            const dropdown = document.getElementById(dropdownId);
+            const items = dropdown.querySelectorAll('.searchable-select-item');
+            
+            // Hiện dropdown khi focus
+            input.addEventListener('focus', function() {
+                dropdown.classList.add('show');
+                filterItems();
+            });
+            
+            // Lọc items khi gõ
+            input.addEventListener('input', function() {
+                filterItems();
+            });
+            
+            // Chọn item
+            items.forEach(item => {
+                item.addEventListener('click', function() {
+                    input.value = this.dataset.value;
+                    dropdown.classList.remove('show');
+                });
+            });
+            
+            // Lọc items theo input
+            function filterItems() {
+                const searchTerm = input.value.toLowerCase();
+                let hasVisibleItems = false;
+                
+                items.forEach(item => {
+                    const text = item.textContent.toLowerCase();
+                    if (text.includes(searchTerm)) {
+                        item.classList.remove('hidden');
+                        hasVisibleItems = true;
+                    } else {
+                        item.classList.add('hidden');
+                    }
+                });
+                
+                // Hiển thị dropdown nếu có items
+                if (hasVisibleItems) {
+                    dropdown.classList.add('show');
+                } else {
+                    dropdown.classList.remove('show');
+                }
+            }
+            
+            // Đóng dropdown khi click bên ngoài
+            document.addEventListener('click', function(e) {
+                if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.remove('show');
+                }
+            });
+        }
+        
+        // Khởi tạo khi modal mở
+        const originalOpenEditModal = openEditModal;
+        openEditModal = function(product) {
+            originalOpenEditModal(product);
+            
+            // Khởi tạo searchable selects
+            setTimeout(() => {
+                initSearchableSelect('edit_author', 'edit_author_dropdown');
+                initSearchableSelect('edit_publisher', 'edit_publisher_dropdown');
+            }, 100);
+        };
     </script>
     </main>
 
     <?php include 'admin_footer.php'; ?>
 </body>
 </html>
-
-<?php
-$conn->close();
-?>
