@@ -1,4 +1,8 @@
 <?php
+// Tắt hiển thị lỗi để không làm hỏng JSON response
+error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE);
+ini_set('display_errors', 0);
+
 session_start();
 require_once 'config/connect.php';
 
@@ -36,6 +40,14 @@ if (empty($full_name) || empty($email) || empty($phone) || empty($address)) {
 try {
     // Bắt đầu transaction
     $conn->begin_transaction();
+    
+    // Kiểm tra user_id có tồn tại không
+    $check_user = $conn->prepare("SELECT user_id FROM users WHERE user_id = ?");
+    $check_user->bind_param("i", $user_id);
+    $check_user->execute();
+    if ($check_user->get_result()->num_rows === 0) {
+        throw new Exception("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
+    }
 
     // Kiểm tra giỏ hàng có sản phẩm không
     $check_cart_sql = "SELECT COUNT(*) as cart_count FROM cart WHERE user_id = ?";
@@ -146,6 +158,10 @@ try {
 } catch (Exception $e) {
     // Rollback nếu có lỗi
     $conn->rollback();
+    
+    // Log chi tiết lỗi
+    error_log("Order Error: " . $e->getMessage());
+    error_log("User ID: " . $user_id);
     echo json_encode([
         'success' => false, 
         'message' => 'Có lỗi xảy ra: ' . $e->getMessage()

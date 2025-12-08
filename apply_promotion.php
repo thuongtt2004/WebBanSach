@@ -1,4 +1,8 @@
 <?php
+// Tắt hiển thị lỗi để không làm hỏng JSON response
+error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE);
+ini_set('display_errors', 0);
+
 session_start();
 require_once 'config/connect.php';
 

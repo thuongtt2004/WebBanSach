@@ -624,23 +624,40 @@ $user = $user_stmt->get_result()->fetch_assoc();
                         </div>
                         ` : ''}
                         <div style="display:flex;gap:10px;margin-top:20px;">
-                            <button onclick="window.open('${bankAppUrl}', '_blank')" style="flex:1;background:#333;color:#ebe9e5;padding:12px;border:none;border-radius:8px;cursor:pointer;font-weight:600;">
+                            <button onclick="openBankingApp('${bankAppUrl}')" style="flex:1;background:#333;color:#ebe9e5;padding:12px;border:none;border-radius:8px;cursor:pointer;font-weight:600;">
                                 <i class="fas fa-mobile-alt"></i> Mở App Banking
                             </button>
                             <button onclick="this.closest('div[style*=fixed]').remove(); ${orderId ? 'window.location.href=\'home.php\'' : ''};" style="flex:1;background:#dc3545;color:white;padding:12px;border:none;border-radius:8px;cursor:pointer;font-weight:600;">
                                 ${orderId ? 'Hoàn thành' : 'Đóng'}
                             </button>
                         </div>
+                        <p style="color:#999;font-size:12px;margin-top:10px;text-align:center;">
+                            <i class="fas fa-info-circle"></i> Nút "Mở App Banking" chỉ hoạt động trên điện thoại có cài app ngân hàng
+                        </p>
                     </div>
                 </div>
             `;
             
             document.body.insertAdjacentHTML('beforeend', qrModal);
+        }
+        
+        // Function để mở app banking
+        function openBankingApp(appUrl) {
+            // Kiểm tra xem có phải mobile không
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             
-            // Thử mở app ngân hàng tự động
-            setTimeout(() => {
-                window.location.href = bankAppUrl;
-            }, 500);
+            if (isMobile) {
+                // Trên mobile thử mở app
+                window.location.href = appUrl;
+                
+                // Sau 2 giây nếu không mở được app, hiện thông báo
+                setTimeout(() => {
+                    alert('Không tìm thấy ứng dụng ngân hàng. Vui lòng quét mã QR bằng app ngân hàng của bạn.');
+                }, 2000);
+            } else {
+                // Trên máy tính hiện thông báo
+                alert('Tính năng này chỉ hoạt động trên điện thoại có cài đặt ứng dụng ngân hàng.\n\nVui lòng:\n1. Quét mã QR bằng app ngân hàng trên điện thoại\n2. Hoặc chuyển khoản thủ công theo thông tin hiển thị');
+            }
         }
         
         // Upload payment proof

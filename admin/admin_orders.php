@@ -180,6 +180,8 @@ $result = $conn->query($sql);
                 <tr>
                     <th>Mã đơn</th>
                     <th>Khách hàng</th>
+                    <th>Tạm tính</th>
+                    <th>Giảm giá</th>
                     <th>Tổng tiền</th>
                     <th>Hình thức TT</th>
                     <th>Ngày đặt</th>
@@ -192,7 +194,21 @@ $result = $conn->query($sql);
                     <tr>
                         <td>#<?php echo $order['order_id']; ?></td>
                         <td><?php echo htmlspecialchars($order['full_name']); ?></td>
-                        <td><?php echo number_format($order['total_amount'], 0, ',', '.'); ?> VNĐ</td>
+                        <td>
+                            <?php 
+                            $discount = isset($order['discount_amount']) ? floatval($order['discount_amount']) : 0;
+                            $subtotal = $order['total_amount'] + $discount;
+                            echo number_format($subtotal, 0, ',', '.'); 
+                            ?> VNĐ
+                        </td>
+                        <td>
+                            <?php if ($discount > 0): ?>
+                                <span style="color:#28a745;font-weight:600;">-<?php echo number_format($discount, 0, ',', '.'); ?> VNĐ</span>
+                            <?php else: ?>
+                                <span style="color:#999;">0 VNĐ</span>
+                            <?php endif; ?>
+                        </td>
+                        <td><strong><?php echo number_format($order['total_amount'], 0, ',', '.'); ?> VNĐ</strong></td>
                         <td>
                             <?php if ($order['payment_method'] === 'bank_transfer'): ?>
                                 <span style="background:#dc3545;color:white;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:600;">

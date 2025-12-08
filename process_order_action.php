@@ -52,10 +52,10 @@ try {
         }
         
     } elseif ($action === 'request_return') {
-        // Kiểm tra thời gian (trong vòng 7 ngày kể từ khi hoàn thành)
+        // Kiểm tra thời gian (trong vòng 1 ngày kể từ khi hoàn thành)
         $completed_date = strtotime($order['completed_date']);
         $days_passed = floor((time() - $completed_date) / 86400);
-        $return_days_limit = 7; // Số ngày cho phép trả hàng
+        $return_days_limit = 1; // Số ngày cho phép trả hàng
         
         if ($days_passed > $return_days_limit) {
             throw new Exception("Đã quá thời hạn trả hàng ({$return_days_limit} ngày kể từ khi nhận hàng)");

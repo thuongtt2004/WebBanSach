@@ -19,7 +19,7 @@ if ($should_run) {
     // Cập nhật completed_date cho đơn cũ
     $conn->query("UPDATE orders SET completed_date = created_at WHERE order_status = 'Hoàn thành' AND completed_date IS NULL");
     
-    // Tự động xác nhận hài lòng sau 7 ngày
+    // Tự động xác nhận đơn hàng sau 7 ngày
     $conn->query("UPDATE orders SET customer_confirmed = 1 WHERE order_status = 'Hoàn thành' AND customer_confirmed = 0 AND ((completed_date IS NOT NULL AND DATEDIFF(NOW(), completed_date) >= 7) OR (completed_date IS NULL AND DATEDIFF(NOW(), created_at) >= 7))");
     
     // Tự động hủy đơn chờ thanh toán quá 24h

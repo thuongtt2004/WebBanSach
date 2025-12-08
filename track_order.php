@@ -21,7 +21,7 @@ $order_stmt->execute();
 $orders = $order_stmt->get_result();
 
 // Số ngày cho phép trả hàng
-$return_days_limit = 7;
+$return_days_limit = 1;
 ?>
 
 <!DOCTYPE html>
@@ -208,7 +208,7 @@ $return_days_limit = 7;
                         </div>
                     <?php endif; ?>
 
-                    <?php if ($order['order_status'] == 'Đã giao hàng'): ?>
+                    <?php if ($order['order_status'] == 'Hoàn thành'): ?>
                         <div class="review-section">
                             <h4>Đánh giá sản phẩm</h4>
                             <?php
@@ -279,33 +279,33 @@ $return_days_limit = 7;
     </div>
 
     <!-- Modal Yêu Cầu Trả Hàng -->
-    <div id="returnModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;justify-content:center;align-items:center;">
-        <div style="background:white;border-radius:12px;padding:30px;max-width:500px;width:90%;box-shadow:0 10px 40px rgba(0,0,0,0.3);">
-            <h3 style="margin-bottom:20px;color:#333;"><i class="fas fa-undo"></i> Yêu cầu trả hàng/hoàn tiền</h3>
-            <form id="returnForm">
+    <div id="returnModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;overflow-y:auto;">
+        <div style="background:white !important;border-radius:12px;padding:30px !important;max-width:500px;width:90%;box-shadow:0 10px 40px rgba(0,0,0,0.3);margin:50px auto;max-height:90vh;overflow-y:auto;">
+            <h3 style="margin-bottom:20px !important;color:#333 !important;display:block !important;visibility:visible !important;"><i class="fas fa-undo"></i> Yêu cầu trả hàng/hoàn tiền</h3>
+            <form id="returnForm" style="display:block !important;visibility:visible !important;">
                 <input type="hidden" id="return_order_id" name="order_id">
-                <div style="margin-bottom:20px;">
-                    <label style="display:block;margin-bottom:8px;font-weight:600;color:#333;">
+                <div style="margin-bottom:20px !important;display:block !important;visibility:visible !important;">
+                    <label style="display:block !important;margin-bottom:8px !important;font-weight:600;color:#333;visibility:visible !important;">
                         Lý do trả hàng <span style="color:red;">*</span>
                     </label>
                     <textarea name="return_reason" 
-                              style="width:100%;padding:12px;border:2px solid #ddd;border-radius:8px;min-height:120px;font-family:inherit;"
+                              style="width:100% !important;padding:12px !important;border:2px solid #ddd;border-radius:8px;min-height:120px !important;font-family:inherit;box-sizing:border-box;display:block !important;visibility:visible !important;"
                               placeholder="Vui lòng mô tả rõ lý do bạn muốn trả hàng (sản phẩm lỗi, không đúng mô tả, v.v.)"
                               required></textarea>
                 </div>
-                <div style="background:#fff3cd;border-left:4px solid #ffc107;padding:12px;margin-bottom:20px;border-radius:8px;">
-                    <p style="margin:0;color:#856404;font-size:14px;">
+                <div style="background:#fff3cd !important;border-left:4px solid #ffc107;padding:12px !important;margin-bottom:20px !important;border-radius:8px;display:block !important;visibility:visible !important;">
+                    <p style="margin:0 !important;color:#856404 !important;font-size:14px !important;display:block !important;visibility:visible !important;">
                         <i class="fas fa-info-circle"></i> 
                         Chúng tôi sẽ xem xét yêu cầu trong vòng 24-48h và liên hệ lại với bạn
                     </p>
                 </div>
-                <div style="display:flex;gap:10px;justify-content:flex-end;">
+                <div style="display:flex !important;gap:10px;justify-content:flex-end;visibility:visible !important;">
                     <button type="button" onclick="closeReturnModal()" 
-                            style="padding:12px 24px;background:#6c757d;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;">
+                            style="padding:12px 24px !important;background:#6c757d !important;color:white !important;border:none;border-radius:8px;cursor:pointer;font-weight:600;display:inline-block !important;visibility:visible !important;">
                         Hủy
                     </button>
                     <button type="submit" 
-                            style="padding:12px 24px;background:#dc3545;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;">
+                            style="padding:12px 24px !important;background:#dc3545 !important;color:white !important;border:none;border-radius:8px;cursor:pointer;font-weight:600;display:inline-block !important;visibility:visible !important;">
                         <i class="fas fa-paper-plane"></i> Gửi yêu cầu
                     </button>
                 </div>
@@ -338,7 +338,7 @@ $return_days_limit = 7;
         // Mở modal yêu cầu trả hàng
         function openReturnModal(orderId) {
             document.getElementById('return_order_id').value = orderId;
-            document.getElementById('returnModal').style.display = 'flex';
+            document.getElementById('returnModal').style.display = 'block';
         }
 
         // Đóng modal

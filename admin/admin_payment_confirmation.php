@@ -425,7 +425,7 @@ $result = $conn->query($sql);
                 return;
             }
 
-            fetch('confirm_payment.php', {
+            fetch('../confirm_payment.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -454,7 +454,7 @@ $result = $conn->query($sql);
             const reason = prompt('Lý do từ chối thanh toán:');
             if (!reason) return;
 
-            fetch('confirm_payment.php', {
+            fetch('../confirm_payment.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

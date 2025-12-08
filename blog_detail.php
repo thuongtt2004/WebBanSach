@@ -115,8 +115,16 @@ $total_comments = $count_result->fetch_assoc()['total'];
             <!-- Featured Image -->
             <?php if ($post['featured_image']): ?>
                 <div class="article-featured-image">
-                    <img src="<?php echo htmlspecialchars($post['featured_image']); ?>" 
-                         alt="<?php echo htmlspecialchars($post['title']); ?>">
+                    <?php 
+                    // Xử lý đường dẫn hình ảnh
+                    $image_path = $post['featured_image'];
+                    if (!preg_match('/^(https?:\/\/|uploads\/)/i', $image_path)) {
+                        $image_path = 'uploads/blog/' . $image_path;
+                    }
+                    ?>
+                    <img src="<?php echo htmlspecialchars($image_path); ?>" 
+                         alt="<?php echo htmlspecialchars($post['title']); ?>"
+                         onerror="this.style.display='none'">
                 </div>
             <?php endif; ?>
 
@@ -319,8 +327,15 @@ $total_comments = $count_result->fetch_assoc()['total'];
                         <?php while ($related = $related_posts->fetch_assoc()): ?>
                             <a href="blog_detail.php?slug=<?php echo $related['slug']; ?>" class="related-post-item">
                                 <?php if ($related['featured_image']): ?>
-                                    <img src="<?php echo htmlspecialchars($related['featured_image']); ?>" 
-                                         alt="<?php echo htmlspecialchars($related['title']); ?>">
+                                    <?php 
+                                    $related_image = $related['featured_image'];
+                                    if (!preg_match('/^(https?:\/\/|uploads\/)/i', $related_image)) {
+                                        $related_image = 'uploads/blog/' . $related_image;
+                                    }
+                                    ?>
+                                    <img src="<?php echo htmlspecialchars($related_image); ?>" 
+                                         alt="<?php echo htmlspecialchars($related['title']); ?>"
+                                         onerror="this.style.display='none'">
                                 <?php endif; ?>
                                 <div class="related-post-info">
                                     <h4><?php echo htmlspecialchars($related['title']); ?></h4>

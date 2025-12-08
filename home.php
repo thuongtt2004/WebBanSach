@@ -33,18 +33,18 @@ if (!$result) {
     die("Lỗi truy vấn: " . $conn->error);
 }
 
-// Lấy top 5 sách bán chạy trong 1 tháng gần đây
+// Lấy top 4 sách bán chạy trong 1 tháng gần đây
 $bestsellers_query = "SELECT p.*, c.category_name,
                       COALESCE(SUM(od.quantity), 0) as total_sold
                       FROM products p
                       LEFT JOIN categories c ON p.category_id = c.category_id
                       LEFT JOIN order_details od ON p.product_id = od.product_id
                       LEFT JOIN orders o ON od.order_id = o.order_id
-                      WHERE o.order_date >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
-                      AND o.status IN ('completed', 'pending', 'processing')
+                      WHERE o.created_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
+                      AND o.order_status IN ('Hoàn thành', 'Đang giao', 'Đã xác nhận')
                       GROUP BY p.product_id
                       ORDER BY total_sold DESC, p.sold_quantity DESC
-                      LIMIT 5";
+                      LIMIT 4";
 $bestsellers_result = $conn->query($bestsellers_query);
 ?>
 
@@ -209,7 +209,7 @@ $bestsellers_result = $conn->query($bestsellers_query);
                                         class="btn-add-cart">
                                     <i class="fas fa-cart-plus"></i> Thêm vào giỏ
                                 </button>
-                                <button onclick="event.stopPropagation(); window.location.href='buy_now.php?id=<?php echo $book['product_id']; ?>'" 
+                                <button onclick="event.stopPropagation(); window.location.href='buy_now_page.php?id=<?php echo $book['product_id']; ?>'" 
                                         class="btn-buy-now">
                                     Mua ngay
                                 </button>
@@ -266,7 +266,7 @@ $bestsellers_result = $conn->query($bestsellers_query);
                                     class="add-to-cart">
                                 Thêm vào giỏ hàng
                             </button>
-                            <button onclick="event.stopPropagation(); window.location.href='buy_now.php?id=<?php echo $row['product_id']; ?>'" 
+                            <button onclick="event.stopPropagation(); window.location.href='buy_now_page.php?id=<?php echo $row['product_id']; ?>'" 
                                     class="buy-now">
                                 Mua ngay
                             </button>

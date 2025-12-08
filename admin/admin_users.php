@@ -30,11 +30,10 @@ if (isset($_POST['add_user'])) {
     $full_name = trim($_POST['full_name']);
     $phone = trim($_POST['phone']);
     $address = trim($_POST['address']);
-    $status = intval($_POST['status']);
     
-    $insert_sql = "INSERT INTO users (username, email, password, full_name, phone, address, status) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    $insert_sql = "INSERT INTO users (username, email, password, full_name, phone, address) VALUES (?, ?, ?, ?, ?, ?)";
     $insert_stmt = $conn->prepare($insert_sql);
-    $insert_stmt->bind_param("ssssssi", $username, $email, $password, $full_name, $phone, $address, $status);
+    $insert_stmt->bind_param("ssssss", $username, $email, $password, $full_name, $phone, $address);
     
     if ($insert_stmt->execute()) {
         $success_message = "Thêm người dùng thành công!";
@@ -52,11 +51,10 @@ if (isset($_POST['update_user'])) {
     $full_name = trim($_POST['full_name']);
     $phone = trim($_POST['phone']);
     $address = trim($_POST['address']);
-    $status = intval($_POST['status']);
     
-    $update_sql = "UPDATE users SET username = ?, email = ?, full_name = ?, phone = ?, address = ?, status = ? WHERE user_id = ?";
+    $update_sql = "UPDATE users SET username = ?, email = ?, full_name = ?, phone = ?, address = ? WHERE user_id = ?";
     $update_stmt = $conn->prepare($update_sql);
-    $update_stmt->bind_param("sssssii", $username, $email, $full_name, $phone, $address, $status, $user_id);
+    $update_stmt->bind_param("sssssi", $username, $email, $full_name, $phone, $address, $user_id);
     
     if ($update_stmt->execute()) {
         $success_message = "Cập nhật người dùng thành công!";
@@ -66,37 +64,16 @@ if (isset($_POST['update_user'])) {
     $update_stmt->close();
 }
 
-// Xử lý khóa/mở khóa người dùng
-if (isset($_POST['toggle_status'])) {
-    $user_id = intval($_POST['user_id']);
-    $current_status = intval($_POST['current_status']);
-    $new_status = $current_status == 1 ? 0 : 1;
-    
-    $toggle_sql = "UPDATE users SET status = ? WHERE user_id = ?";
-    $toggle_stmt = $conn->prepare($toggle_sql);
-    $toggle_stmt->bind_param("ii", $new_status, $user_id);
-    
-    if ($toggle_stmt->execute()) {
-        $success_message = $new_status == 1 ? "Mở khóa người dùng thành công!" : "Khóa người dùng thành công!";
-    } else {
-        $error_message = "Lỗi khi thay đổi trạng thái: " . $conn->error;
-    }
-    $toggle_stmt->close();
-}
+// Logic toggle status đã xóa vì bảng users không có cột status
 
 // Xử lý tìm kiếm
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
-$status_filter = isset($_GET['status']) ? $_GET['status'] : 'all';
 
 $sql = "SELECT * FROM users WHERE 1=1";
 
 if (!empty($search)) {
     $search_param = "%$search%";
     $sql .= " AND (username LIKE ? OR email LIKE ? OR full_name LIKE ? OR phone LIKE ?)";
-}
-
-if ($status_filter !== 'all') {
-    $sql .= " AND status = " . intval($status_filter);
 }
 
 $sql .= " ORDER BY user_id DESC";
@@ -492,11 +469,6 @@ $result = $stmt->get_result();
                         <button type="submit"><i class="fas fa-search"></i></button>
                     </form>
                 </div>
-                <select class="filter-select" onchange="window.location.href='?status=' + this.value + '<?php echo !empty($search) ? '&search=' . urlencode($search) : ''; ?>'">
-                    <option value="all" <?php echo $status_filter === 'all' ? 'selected' : ''; ?>>Tất cả trạng thái</option>
-                    <option value="1" <?php echo $status_filter === '1' ? 'selected' : ''; ?>>Hoạt động</option>
-                    <option value="0" <?php echo $status_filter === '0' ? 'selected' : ''; ?>>Đã khóa</option>
-                </select>
             </div>
 
             <div class="users-table">
@@ -510,16 +482,11 @@ $result = $stmt->get_result();
                             <th>Email</th>
                             <th>Số điện thoại</th>
                             <th>Ngày đăng ký</th>
-                            <th>Trạng thái</th>
                             <th>Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php while($user = $result->fetch_assoc()): 
-                            $status = isset($user['status']) ? $user['status'] : 1;
-                            $status_class = $status == 1 ? 'active' : 'inactive';
-                            $status_text = $status == 1 ? 'Hoạt động' : 'Đã khóa';
-                        ?>
+                        <?php while($user = $result->fetch_assoc()): ?>
                         <tr>
                             <td><?php echo $user['user_id']; ?></td>
                             <td><strong><?php echo htmlspecialchars($user['username']); ?></strong></td>
@@ -527,20 +494,11 @@ $result = $stmt->get_result();
                             <td><?php echo htmlspecialchars($user['email']); ?></td>
                             <td><?php echo htmlspecialchars($user['phone'] ?? ''); ?></td>
                             <td><?php echo date('d/m/Y', strtotime($user['created_at'])); ?></td>
-                            <td><span class="status <?php echo $status_class; ?>"><?php echo $status_text; ?></span></td>
                             <td>
                                 <div class="action-buttons">
                                     <button class="btn-edit" onclick='editUser(<?php echo json_encode($user); ?>)'>
                                         <i class="fas fa-edit"></i>
                                     </button>
-                                    
-                                    <form method="POST" style="display:inline;" onsubmit="return confirm('Xác nhận <?php echo $status == 1 ? 'khóa' : 'mở khóa'; ?> người dùng này?')">
-                                        <input type="hidden" name="user_id" value="<?php echo $user['user_id']; ?>">
-                                        <input type="hidden" name="current_status" value="<?php echo $status; ?>">
-                                        <button type="submit" name="toggle_status" class="<?php echo $status == 1 ? 'btn-lock' : 'btn-unlock'; ?>">
-                                            <i class="fas fa-<?php echo $status == 1 ? 'lock' : 'unlock'; ?>"></i>
-                                        </button>
-                                    </form>
                                     
                                     <form method="POST" style="display:inline;" onsubmit="return confirm('Xác nhận xóa người dùng này? Hành động này không thể hoàn tác!')">
                                         <input type="hidden" name="user_id" value="<?php echo $user['user_id']; ?>">
