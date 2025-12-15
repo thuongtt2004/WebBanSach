@@ -80,6 +80,59 @@ footer {
     bottom: 0;
 }
 
+/* === RESPONSIVE MOBILE === */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+    
+    h2 {
+        font-size: 22px;
+        padding: 10px 0;
+    }
+    
+    .products {
+        justify-content: center;
+    }
+    
+    .product {
+        width: calc(50% - 20px);
+        min-width: 150px;
+        margin: 5px;
+        padding: 8px;
+    }
+    
+    .slideshow-container {
+        padding: 0 5px;
+    }
+    
+    .slide img {
+        height: 250px;
+    }
+}
+
+@media (max-width: 480px) {
+    .product {
+        width: calc(100% - 20px);
+        max-width: 300px;
+    }
+    
+    .slide img,
+    .slideshow-container img {
+        height: 250px;
+        object-fit: cover;
+    }
+    
+    .slideshow-container {
+        margin: 0 10px 20px 10px;
+        padding: 0;
+    }
+    
+    h2 {
+        font-size: 20px;
+    }
+}
+
 .slideshow-container {
     max-width: 1400px;
     position: relative;

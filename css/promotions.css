@@ -229,9 +229,48 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+    .flash-sale-banner {
+        margin: 15px 10px;
+        padding: 20px 15px;
+    }
+    
     .flash-sale-content {
         flex-direction: column;
         text-align: center;
+        gap: 15px;
+    }
+    
+    .flash-sale-icon {
+        font-size: 45px;
+    }
+    
+    .flash-sale-info h2 {
+        font-size: 20px;
+    }
+    
+    .flash-sale-desc {
+        font-size: 15px;
+    }
+    
+    .flash-sale-desc strong {
+        font-size: 20px;
+    }
+    
+    .promotions-section {
+        padding: 10px;
+    }
+    
+    .promotions-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .flash-sale-banner {
+        margin: 10px 10px;
+        padding: 18px 12px;
+        border-radius: 8px;
     }
     
     .flash-sale-icon {
@@ -239,14 +278,30 @@
     }
     
     .flash-sale-info h2 {
-        font-size: 22px;
+        font-size: 18px;
     }
     
     .flash-sale-desc {
-        font-size: 16px;
+        font-size: 14px;
     }
     
-    .promotions-grid {
-        grid-template-columns: 1fr;
+    .flash-sale-desc strong {
+        font-size: 18px;
+    }
+    
+    .min-order {
+        font-size: 12px;
+        padding: 3px 8px;
+        margin-left: 5px;
+        display: block;
+        margin-top: 5px;
+    }
+    
+    .flash-sale-time {
+        font-size: 14px;
+    }
+    
+    .countdown {
+        font-size: 18px;
     }
 }

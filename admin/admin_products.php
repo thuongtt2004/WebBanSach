@@ -131,7 +131,9 @@ if ($publishers_result) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản Lý Sách - TTHUONG Bookstore</title>
     <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/admin-mobile.css">
     <link rel="stylesheet" href="../css/admin_products.css">
+    <link rel="stylesheet" href="../css/mobile-375px.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -199,46 +201,57 @@ if ($publishers_result) {
             <a href="/TTHUONG/add_product.php" class="add-product-btn">
                 <i class="fas fa-plus"></i> Thêm sách mới
             </a>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Tìm kiếm sách theo tên, tác giả, danh mục..." onkeyup="searchProducts()">
+            </div>
         </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Tên Sách</th>
-                    <th>Tác Giả</th>
-                    <th>Danh Mục</th>
-                    <th>Giá</th>
-                    <th>Tồn Kho</th>
-                    <th>Đã Bán</th>
-                    <th>Hình Ảnh</th>
-                    <th>Thao Tác</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if ($result): while($row = $result->fetch_assoc()): ?>
+        
+        <div class="table-wrapper">
+            <table>
+                <thead>
                     <tr>
-                        <td><?php echo $row['product_id']; ?></td>
-                        <td><?php echo $row['product_name']; ?></td>
-                        <td><?php echo $row['author'] ?? '-'; ?></td>
-                        <td><?php echo $row['category_name']; ?></td>
-                        <td><?php echo number_format($row['price'], 0, ',', '.'); ?> VNĐ</td>
-                        <td><?php echo $row['stock_quantity']; ?></td>
-                        <td><?php echo $row['sold_quantity']; ?></td>
-                        <td><img src="../<?php echo $row['image_url']; ?>" width="50" alt="<?php echo $row['product_name']; ?>"></td>
-                        <td>
-                            <button class="btn-edit" onclick="openEditModal(<?php echo htmlspecialchars(json_encode($row)); ?>)">
-                                Sửa
-                            </button>
-                            <form method="POST" style="display: inline;" onsubmit="return confirmDelete(<?php echo $row['product_id']; ?>)">
-                                <input type="hidden" name="delete_product" value="1">
-                                <input type="hidden" name="product_id" value="<?php echo $row['product_id']; ?>">
-                                <button type="submit" class="btn-delete">Xóa</button>
-                            </form>
-                        </td>
+                        <th>ID</th>
+                        <th>Tên Sách</th>
+                        <th>Tác Giả</th>
+                        <th>Danh Mục</th>
+                        <th>Giá</th>
+                        <th>Tồn Kho</th>
+                        <th>Đã Bán</th>
+                        <th>Hình Ảnh</th>
+                        <th>Thao Tác</th>
                     </tr>
-                <?php endwhile; endif; ?>
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    <?php if ($result): while($row = $result->fetch_assoc()): ?>
+                        <tr>
+                            <td><?php echo $row['product_id']; ?></td>
+                            <td><?php echo $row['product_name']; ?></td>
+                            <td><?php echo $row['author'] ?? '-'; ?></td>
+                            <td><?php echo $row['category_name']; ?></td>
+                            <td><?php echo number_format($row['price'], 0, ',', '.'); ?> VNĐ</td>
+                            <td><?php echo $row['stock_quantity']; ?></td>
+                            <td><?php echo $row['sold_quantity']; ?></td>
+                            <td><img src="../<?php echo $row['image_url']; ?>" width="50" alt="<?php echo $row['product_name']; ?>"></td>
+                            <td class="actions-cell">
+                                <div class="action-buttons">
+                                    <button class="btn-edit" onclick="openEditModal(<?php echo htmlspecialchars(json_encode($row)); ?>)">
+                                        <i class="fas fa-edit"></i> <span class="btn-text">Sửa</span>
+                                    </button>
+                                    <form method="POST" style="display: inline;" onsubmit="return confirmDelete(<?php echo $row['product_id']; ?>)">
+                                        <input type="hidden" name="delete_product" value="1">
+                                        <input type="hidden" name="product_id" value="<?php echo $row['product_id']; ?>">
+                                        <button type="submit" class="btn-delete">
+                                            <i class="fas fa-trash"></i> <span class="btn-text">Xóa</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endwhile; endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <!-- Modal Sửa Sách -->
@@ -511,6 +524,32 @@ if ($publishers_result) {
                 initSearchableSelect('edit_publisher', 'edit_publisher_dropdown');
             }, 100);
         };
+        
+        // Search products function
+        function searchProducts() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toLowerCase();
+            const table = document.querySelector('table tbody');
+            const rows = table.getElementsByTagName('tr');
+            
+            for (let i = 0; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName('td');
+                let found = false;
+                
+                // Search in: name (1), author (2), category (3)
+                for (let j = 1; j <= 3; j++) {
+                    if (cells[j]) {
+                        const text = cells[j].textContent || cells[j].innerText;
+                        if (text.toLowerCase().indexOf(filter) > -1) {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                
+                rows[i].style.display = found ? '' : 'none';
+            }
+        }
     </script>
     </main>
 

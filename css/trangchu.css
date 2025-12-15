@@ -216,6 +216,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center;
 }
 
 .fade {
@@ -444,6 +445,16 @@
 }
 
 @media (max-width: 768px) {
+    /* Slideshow/Banner tối ưu cho tablet */
+    .slideshow-container {
+        margin: 0 auto 30px auto;
+        border-radius: 8px;
+    }
+    
+    .mySlides {
+        height: 350px;
+    }
+    
     .bestsellers-container {
         grid-template-columns: 1fr;
     }
@@ -454,6 +465,37 @@
     
     .bestseller-image {
         height: 280px;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Slideshow/Banner tối ưu cho mobile */
+    .slideshow-container {
+        margin: 0 10px 20px 10px;
+        border-radius: 6px;
+    }
+    
+    .mySlides {
+        height: 250px;
+    }
+    
+    .mySlides img {
+        object-fit: cover;
+        object-position: center;
+    }
+    
+    #home {
+        padding: 20px 15px;
+    }
+    
+    #home h2 {
+        font-size: 22px;
+        margin-top: 20px;
+    }
+    
+    #home p {
+        font-size: 14px;
+        line-height: 1.6;
     }
 }
 

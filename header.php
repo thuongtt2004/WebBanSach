@@ -91,15 +91,15 @@ if ($should_run) {
     
     <nav class="main-nav">
         <ul>
-            <li><a href="home.php"><i class="fas fa-home"></i> Trang chủ</a></li>
-            <li><a href="products.php"><i class="fas fa-book"></i> Sách</a></li>
-            <li><a href="authors.php"><i class="fas fa-user-edit"></i> Tác giả</a></li>
-            <li><a href="publishers.php"><i class="fas fa-building"></i> NXB</a></li>
-            <li><a href="blog.php"><i class="fas fa-newspaper"></i> Blog</a></li>
-            <li><a href="cart.php"><i class="fas fa-shopping-cart"></i> Giỏ hàng</a></li>
-            <li><a href="track_order.php"><i class="fas fa-truck"></i> Theo dõi đơn</a></li>
-            <li><a href="reviews.php"><i class="fas fa-star"></i> Đánh giá</a></li>
-            <li><a href="contact.php"><i class="fas fa-envelope"></i> Liên hệ</a></li>
+            <li><a href="home.php"><i class="fas fa-home"></i> <span>Trang chủ</span></a></li>
+            <li><a href="products.php"><i class="fas fa-book"></i> <span>Sách</span></a></li>
+            <li><a href="authors.php"><i class="fas fa-user-edit"></i> <span>Tác giả</span></a></li>
+            <li><a href="publishers.php"><i class="fas fa-building"></i> <span>NXB</span></a></li>
+            <li><a href="blog.php"><i class="fas fa-newspaper"></i> <span>Blog</span></a></li>
+            <li><a href="cart.php"><i class="fas fa-shopping-cart"></i> <span>Giỏ hàng</span></a></li>
+            <li><a href="track_order.php"><i class="fas fa-truck"></i> <span>Theo dõi</span></a></li>
+            <li><a href="reviews.php"><i class="fas fa-star"></i> <span>Đánh giá</span></a></li>
+            <li><a href="contact.php"><i class="fas fa-envelope"></i> <span>Liên hệ</span></a></li>
         </ul>
     </nav>
 </header>
@@ -120,6 +120,8 @@ if ($should_run) {
 <?php endif; ?>
 
 <link rel="stylesheet" href="css/header.css">
+<link rel="stylesheet" href="css/mobile-optimization.css">
+<link rel="stylesheet" href="css/mobile-375px.css">
 
 <!-- Thêm Font Awesome cho icon -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">

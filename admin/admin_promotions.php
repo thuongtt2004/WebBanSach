@@ -112,9 +112,15 @@ if ($conn->query("SHOW TABLES LIKE 'categories'")->num_rows > 0) {
 
 include 'admin_header.php';
 ?>
-
-<link rel="stylesheet" href="../css/admin.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/admin-mobile.css">
+    <link rel="stylesheet" href="../css/mobile-375px.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <style>
 .promotions-container {
     padding: 20px;
@@ -127,27 +133,47 @@ include 'admin_header.php';
     justify-content: space-between;
     align-items: center;
     margin-bottom: 30px;
+    gap: 15px;
+    flex-wrap: wrap;
 }
 
 .page-header h1 {
     color: #333;
     font-size: 28px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+}
+
+.page-header h1 i {
+    font-size: 26px;
 }
 
 .btn-add {
-    background-color: #28a745;
+    background: linear-gradient(135deg, #2dce89 0%, #24a46d 100%);
     color: white;
     padding: 12px 24px;
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
     text-decoration: none;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     font-size: 16px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(45, 206, 137, 0.3);
+    transition: all 0.3s;
 }
 
 .btn-add:hover {
-    background-color: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(45, 206, 137, 0.4);
+}
+
+.btn-add i {
+    font-size: 18px;
 }
 
 .filter-tabs {
@@ -179,17 +205,44 @@ include 'admin_header.php';
     border-color: #007bff;
 }
 
-.promotions-table {
+.table-wrapper {
     width: 100%;
     background: white;
-    border-radius: 8px;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
     overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    margin-bottom: 30px;
+}
+
+.promotions-table {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.promotions-table::-webkit-scrollbar {
+    height: 8px;
+}
+
+.promotions-table::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.promotions-table::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+}
+
+.promotions-table::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
 }
 
 .promotions-table table {
     width: 100%;
     border-collapse: collapse;
+    min-width: 900px;
 }
 
 .promotions-table th {
@@ -234,34 +287,68 @@ include 'admin_header.php';
 .action-buttons {
     display: flex;
     gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
 .btn-edit, .btn-delete {
-    padding: 6px 12px;
+    padding: 10px 18px;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 13px;
+    font-weight: 600;
     text-decoration: none;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+    white-space: nowrap;
 }
 
 .btn-edit {
-    background-color: #007bff;
+    background: linear-gradient(135deg, #11cdef 0%, #0da5c0 100%);
     color: white;
+    box-shadow: 0 3px 10px rgba(17, 205, 239, 0.3);
 }
 
 .btn-edit:hover {
-    background-color: #0056b3;
+    background: linear-gradient(135deg, #0da5c0 0%, #11cdef 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(17, 205, 239, 0.4);
 }
 
 .btn-delete {
-    background-color: #dc3545;
+    background: linear-gradient(135deg, #f5365c 0%, #ec0c38 100%);
     color: white;
+    box-shadow: 0 3px 10px rgba(245, 54, 92, 0.3);
 }
 
 .btn-delete:hover {
-    background-color: #c82333;
+    background: linear-gradient(135deg, #ec0c38 0%, #f5365c 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(245, 54, 92, 0.4);
+}
+
+.btn-edit i, .btn-delete i {
+    font-size: 14px;
+}
+
+.no-promotions {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6c757d;
+}
+
+.no-promotions i {
+    font-size: 64px;
+    color: #dee2e6;
+    margin-bottom: 20px;
+}
+
+.no-promotions p {
+    font-size: 18px;
+    margin: 0;
 }
 
 .modal {
@@ -402,13 +489,153 @@ include 'admin_header.php';
 .conditional-field {
     display: none;
 }
+
+/* Responsive Mobile Styles */
+@media (max-width: 992px) {
+    .promotions-container {
+        padding: 15px;
+    }
+    
+    .filter-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    
+    .filter-tabs::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .filter-tab {
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+    
+    .page-header h1 {
+        font-size: 20px;
+        justify-content: center;
+    }
+    
+    .page-header h1 i {
+        font-size: 22px;
+    }
+    
+    .btn-add {
+        width: 100%;
+        justify-content: center;
+        padding: 14px 20px;
+    }
+    
+    .filter-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 8px;
+    }
+    
+    .filter-tab {
+        font-size: 13px;
+        padding: 8px 15px;
+    }
+    
+    .table-wrapper {
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    
+    .promotions-table {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .promotions-table table {
+        min-width: 900px;
+        font-size: 13px;
+    }
+    
+    .promotions-table th,
+    .promotions-table td {
+        padding: 10px 8px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .btn-edit, .btn-delete {
+        width: 100%;
+        justify-content: center;
+        padding: 8px 12px;
+    }
+    
+    /* Ẩn text, chỉ hiện icon trên mobile */
+    .btn-text {
+        display: none;
+    }
+    
+    .btn-edit i, .btn-delete i {
+        margin: 0;
+        font-size: 16px;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 20px auto;
+        padding: 20px 15px;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .promotions-container {
+        padding: 10px;
+    }
+    
+    .page-header h1 {
+        font-size: 18px;
+    }
+    
+    .page-header h1 i {
+        font-size: 18px;
+    }
+    
+    .btn-add {
+        font-size: 14px;
+        padding: 12px 16px;
+    }
+    
+    .btn-add .btn-text {
+        display: none;
+    }
+    
+    .btn-add i {
+        font-size: 16px;
+        margin: 0;
+    }
+    
+    .badge {
+        font-size: 10px;
+        padding: 4px 8px;
+    }
+}
 </style>
 
 <div class="promotions-container">
     <div class="page-header">
         <h1><i class="fas fa-tags"></i> Quản lý khuyến mãi</h1>
         <button class="btn-add" onclick="openAddModal()">
-            <i class="fas fa-plus"></i> Thêm khuyến mãi
+            <i class="fas fa-plus"></i> <span class="btn-text">Thêm khuyến mãi</span>
         </button>
     </div>
 
@@ -436,20 +663,21 @@ include 'admin_header.php';
         </a>
     </div>
 
-    <div class="promotions-table">
-        <?php if ($promotions_result->num_rows > 0): ?>
-        <table>
-            <thead>
-                <tr>
-                    <th>Mã KM</th>
-                    <th>Tên khuyến mãi</th>
-                    <th>Loại</th>
-                    <th>Giảm giá</th>
-                    <th>Thời gian</th>
-                    <th>Đã dùng/Giới hạn</th>
-                    <th>Trạng thái</th>
-                    <th>Thao tác</th>
-                </tr>
+    <div class="table-wrapper">
+        <div class="promotions-table">
+            <?php if ($promotions_result->num_rows > 0): ?>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã KM</th>
+                        <th>Tên khuyến mãi</th>
+                        <th>Loại</th>
+                        <th>Giảm giá</th>
+                        <th>Thời gian</th>
+                        <th>Đã dùng/Giới hạn</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
             </thead>
             <tbody>
                 <?php while ($promo = $promotions_result->fetch_assoc()): 
@@ -482,12 +710,12 @@ include 'admin_header.php';
                     <td>
                         <div class="action-buttons">
                             <button class="btn-edit" onclick='editPromotion(<?= json_encode($promo) ?>)'>
-                                <i class="fas fa-edit"></i>
+                                <i class="fas fa-edit"></i> <span class="btn-text">Sửa</span>
                             </button>
                             <form method="POST" style="display:inline;" onsubmit="return confirm('Xác nhận xóa khuyến mãi này?')">
                                 <input type="hidden" name="promotion_id" value="<?= $promo['promotion_id'] ?>">
                                 <button type="submit" name="delete_promotion" class="btn-delete">
-                                    <i class="fas fa-trash"></i>
+                                    <i class="fas fa-trash"></i> <span class="btn-text">Xóa</span>
                                 </button>
                             </form>
                         </div>
@@ -502,6 +730,7 @@ include 'admin_header.php';
             <p>Chưa có khuyến mãi nào. Nhấn "Thêm khuyến mãi" để bắt đầu!</p>
         </div>
         <?php endif; ?>
+        </div>
     </div>
 </div>
 
@@ -708,8 +937,12 @@ window.onclick = function(event) {
     }
 }
 </script>
+</head>
+<body>
 
 <?php
 include 'admin_footer.php';
 $conn->close();
 ?>
+</body>
+</html>

@@ -294,27 +294,85 @@
 }
 
 /* Responsive */
+@media (max-width: 992px) {
+    .admin-reviews-container {
+        padding: 20px 15px;
+    }
+    
+    .review-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+}
+
 @media (max-width: 768px) {
+    .admin-reviews-container h2 {
+        font-size: 22px;
+    }
+    
+    .review-card {
+        padding: 15px;
+    }
+    
     .review-card-header {
         flex-direction: column;
-        gap: 15px;
+        gap: 12px;
+        align-items: flex-start;
     }
 
     .review-meta {
         text-align: left;
+        width: 100%;
+    }
+    
+    .review-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
     }
 
     .review-actions {
         flex-direction: column;
+        gap: 8px;
+        width: 100%;
     }
 
     .btn-delete,
     .btn-view-order {
         width: 100%;
         text-align: center;
+        justify-content: center;
+        padding: 10px 15px;
     }
 
     .review-stats {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .stat-card {
+        padding: 15px;
+    }
+    
+    .stat-card .stat-number {
+        font-size: 28px;
+    }
+}
+
+@media (max-width: 480px) {
+    .admin-reviews-container {
+        padding: 15px 10px;
+    }
+    
+    .review-card {
+        padding: 12px;
+    }
+    
+    .product-info h4 {
+        font-size: 15px;
+    }
+    
+    .review-content {
+        font-size: 14px;
     }
 }

@@ -1,0 +1,387 @@
+/* ===================================
+   MOBILE OPTIMIZATION CSS - iQOO Z9 TURBO
+   Tối ưu cho iQOO Z9 Turbo (6.78", 1260x2800, ~420px CSS width)
+   Và các điện thoại Android tương đương
+   =================================== */
+
+/* === BREAKPOINT: 420px (iQOO Z9 Turbo & similar) === */
+@media (max-width: 420px) {
+    /* Container & Spacing */
+    .container {
+        padding: 10px !important;
+        margin: 0 auto;
+    }
+    
+    /* Header Optimization */
+    .user-header,
+    .admin-header {
+        padding: 0;
+    }
+    
+    .header-top,
+    .admin-header-top {
+        padding: 10px 12px !important;
+        gap: 10px;
+    }
+    
+    .logo-section h1 {
+        font-size: 0.95rem !important;
+    }
+    
+    .site-logo {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    
+    .header-actions {
+        gap: 8px !important;
+    }
+    
+    .chat-icon-btn,
+    .profile-icon-btn {
+        width: 38px !important;
+        height: 38px !important;
+    }
+    
+    .chat-icon-btn i,
+    .profile-icon-btn i {
+        font-size: 1.1rem !important;
+    }
+    
+    .user-welcome {
+        padding: 8px 12px !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .btn-logout-user,
+    .btn-login,
+    .btn-register {
+        padding: 8px 12px !important;
+        font-size: 0.8rem !important;
+    }
+    
+    /* Navigation Menu */
+    .main-nav {
+        padding: 0 !important;
+    }
+    
+    .main-nav ul {
+        gap: 0 !important;
+        padding: 0 5px !important;
+    }
+    
+    .main-nav a {
+        padding: 12px 10px !important;
+        font-size: 0.75rem !important;
+    }
+    
+    .main-nav a i {
+        font-size: 1rem !important;
+    }
+    
+    .main-nav a span {
+        display: none !important;
+    }
+    
+    /* Search Box */
+    .search-box {
+        width: 100% !important;
+        margin: 5px 0 !important;
+    }
+    
+    .search-box input {
+        font-size: 14px !important;
+        padding: 10px 14px 10px 38px !important;
+    }
+    
+    .search-box i {
+        font-size: 14px !important;
+        left: 12px !important;
+    }
+    
+    /* Buttons */
+    .btn,
+    button {
+        min-height: 44px !important;
+        padding: 11px 14px !important;
+        font-size: 14px !important;
+    }
+    
+    .btn-add,
+    .btn-primary,
+    .btn-success {
+        width: 100%;
+        justify-content: center;
+        font-size: 14px !important;
+        padding: 13px 12px !important;
+    }
+    
+    /* Tables */
+    .table-wrapper {
+        border-radius: 8px !important;
+        margin: 0 -10px !important;
+        width: calc(100% + 20px);
+    }
+    
+    table {
+        font-size: 12px !important;
+        min-width: 850px !important;
+    }
+    
+    thead th {
+        padding: 11px 8px !important;
+        font-size: 12px !important;
+    }
+    
+    tbody td {
+        padding: 9px 8px !important;
+        font-size: 12px !important;
+    }
+    
+    .action-buttons {
+        gap: 5px !important;
+    }
+    
+    .btn-edit,
+    .btn-delete {
+        padding: 9px 12px !important;
+        font-size: 12px !important;
+    }
+    
+    .btn-edit i,
+    .btn-delete i {
+        font-size: 15px !important;
+    }
+    
+    /* Product Cards */
+    .product-card,
+    .book-card {
+        margin-bottom: 12px !important;
+    }
+    
+    .product-card img,
+    .book-card img {
+        height: 200px !important;
+    }
+    
+    .product-card h3,
+    .book-card h3 {
+        font-size: 14px !important;
+        line-height: 1.4 !important;
+    }
+    
+    .product-card .price,
+    .book-card .price {
+        font-size: 15px !important;
+    }
+    
+    .product-card .btn,
+    .book-card .btn {
+        font-size: 13px !important;
+        padding: 9px !important;
+    }
+    
+    /* Grid Layouts */
+    .products-grid,
+    .books-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+        padding: 8px !important;
+    }
+    
+    /* Forms */
+    .form-row {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+    
+    .form-group {
+        margin-bottom: 14px !important;
+    }
+    
+    .form-group label {
+        font-size: 14px !important;
+        margin-bottom: 6px !important;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        font-size: 15px !important;
+        padding: 11px !important;
+    }
+    
+    /* Modals */
+    .modal-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 10px !important;
+        padding: 18px !important;
+        border-radius: 12px !important;
+    }
+    
+    .modal-header h2 {
+        font-size: 17px !important;
+    }
+    
+    .close {
+        font-size: 26px !important;
+        right: 12px !important;
+        top: 12px !important;
+    }
+    
+    /* Filter Tabs */
+    .filter-tabs {
+        gap: 6px !important;
+        padding: 6px !important;
+    }
+    
+    .filter-tab {
+        font-size: 12px !important;
+        padding: 8px 12px !important;
+        white-space: nowrap;
+    }
+    
+    .filter-tab i {
+        font-size: 12px !important;
+    }
+    
+    /* Page Headers */
+    .page-header h1 {
+        font-size: 18px !important;
+    }
+    
+    .page-header h1 i {
+        font-size: 18px !important;
+    }
+    
+    /* Stats Cards */
+    .stats-card,
+    .stat-card {
+        padding: 14px !important;
+    }
+    
+    .stats-card h3,
+    .stat-card h3 {
+        font-size: 22px !important;
+    }
+    
+    .stats-card p,
+    .stat-card p {
+        font-size: 12px !important;
+    }
+    
+    .stats-card i,
+    .stat-card i {
+        font-size: 26px !important;
+    }
+    
+    /* Badges */
+    .badge {
+        font-size: 10px !important;
+        padding: 4px 7px !important;
+    }
+    
+    /* Pagination */
+    .pagination {
+        gap: 4px !important;
+    }
+    
+    .pagination a,
+    .pagination span {
+        padding: 7px 11px !important;
+        font-size: 13px !important;
+    }
+    
+    /* Banner/Slideshow */
+    .banner,
+    .slideshow {
+        height: 220px !important;
+    }
+    
+    .banner-content h1,
+    .slide-content h1 {
+        font-size: 20px !important;
+    }
+    
+    .banner-content p,
+    .slide-content p {
+        font-size: 13px !important;
+    }
+    
+    /* Alerts */
+    .alert {
+        padding: 11px !important;
+        font-size: 13px !important;
+    }
+    
+    /* Breadcrumb */
+    .breadcrumb {
+        font-size: 12px !important;
+        padding: 9px !important;
+    }
+    
+    /* Footer */
+    .footer {
+        padding: 18px 12px !important;
+    }
+    
+    .footer-section h3 {
+        font-size: 15px !important;
+    }
+    
+    .footer-section p,
+    .footer-section a {
+        font-size: 12px !important;
+    }
+    
+    /* Scrollbar cho table */
+    .table-wrapper::-webkit-scrollbar {
+        height: 6px !important;
+    }
+    
+    .promotions-table::-webkit-scrollbar {
+        height: 6px !important;
+    }
+}
+
+/* === BREAKPOINT: 380px (Điện thoại nhỏ hơn) === */
+@media (max-width: 380px) {
+    .products-grid,
+    .books-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+    
+    .product-card img,
+    .book-card img {
+        height: 240px !important;
+    }
+    
+    .logo-section h1 {
+        font-size: 0.8rem !important;
+    }
+    
+    .site-logo {
+        width: 36px !important;
+        height: 36px !important;
+    }
+    
+    .main-nav a {
+        padding: 10px 7px !important;
+        font-size: 0.7rem !important;
+    }
+    
+    table {
+        min-width: 750px !important;
+        font-size: 11px !important;
+    }
+    
+    .btn-text {
+        display: none !important;
+    }
+    
+    .container {
+        padding: 8px !important;
+    }
+}

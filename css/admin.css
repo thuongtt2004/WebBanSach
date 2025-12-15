@@ -290,8 +290,7 @@ body {
 .admin-header {
     background: #ebe9e5;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    position: sticky;
-    top: 0;
+    position: relative;
     z-index: 1000;
 }
 
@@ -757,20 +756,211 @@ footer {
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
-    .header-content {
-        padding: 0 1rem;
+@media (max-width: 1200px) {
+    .admin-header-top {
+        padding: 1rem 1.5rem;
     }
+    
+    .admin-main-nav ul {
+        gap: 0.5rem;
+    }
+    
+    .admin-main-nav a {
+        padding: 0.7rem 1rem;
+        font-size: 0.9rem;
+    }
+}
 
-    nav ul {
+@media (max-width: 992px) {
+    .admin-header-top {
         flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
     }
-
-    main {
+    
+    .admin-header-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .admin-main-nav ul {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
         padding: 0 1rem;
     }
+    
+    .admin-main-nav ul::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
 
+@media (max-width: 768px) {
+    .admin-header-top {
+        padding: 1rem;
+    }
+    
+    .logo-section h1 {
+        font-size: 1.2rem;
+    }
+    
+    .admin-logo {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .admin-welcome span {
+        display: none;
+    }
+    
+    .admin-main-nav a {
+        padding: 0.7rem 0.8rem;
+        font-size: 0.85rem;
+        white-space: nowrap;
+    }
+    
+    .admin-main-nav a i {
+        font-size: 0.9rem;
+    }
+    
+    /* Tables responsive */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    table {
+        min-width: 600px;
+    }
+    
+    th, td {
+        padding: 0.8rem;
+        font-size: 0.85rem;
+    }
+    
+    /* Stats grid - 1 cột */
+    .stats-grid,
     .dashboard-stats {
         grid-template-columns: 1fr;
+    }
+    
+    /* Forms */
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        font-size: 16px !important; /* Tránh zoom trên iOS */
+    }
+    
+    /* Buttons */
+    .btn-add,
+    .btn-edit,
+    .btn-delete,
+    .btn-view,
+    .btn-print,
+    .btn-submit,
+    .action-btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.85rem;
+    }
+    
+    /* Search form */
+    .search-form {
+        flex-direction: column;
+    }
+    
+    .search-form input,
+    .search-form button {
+        width: 100%;
+    }
+    
+    main {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .admin-header-top {
+        padding: 0.8rem;
+    }
+    
+    .logo-section {
+        gap: 0.5rem;
+    }
+    
+    .logo-section h1 {
+        font-size: 1rem;
+    }
+    
+    .admin-logo {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .admin-header-actions {
+        gap: 8px;
+    }
+    
+    .btn-logout-admin {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.8rem;
+    }
+    
+    .admin-main-nav a {
+        padding: 0.6rem 0.7rem;
+        font-size: 0.8rem;
+    }
+    
+    .admin-main-nav a span {
+        display: none;
+    }
+    
+    .admin-main-nav a i {
+        font-size: 1.1rem;
+    }
+    
+    .admin-badge {
+        font-size: 0.65rem;
+        padding: 2px 6px;
+    }
+    
+    /* Cards */
+    .stat-card {
+        padding: 15px;
+    }
+    
+    .stat-card h3 {
+        font-size: 0.95rem;
+    }
+    
+    .stat-card p {
+        font-size: 20px;
+    }
+    
+    /* Tables - stack layout */
+    table {
+        font-size: 0.8rem;
+    }
+    
+    th, td {
+        padding: 0.6rem 0.5rem;
+    }
+    
+    /* Modals */
+    .modal-content {
+        width: 95%;
+        padding: 15px;
+    }
+    
+    /* Form groups */
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-group label {
+        font-size: 0.9rem;
     }
 } 
