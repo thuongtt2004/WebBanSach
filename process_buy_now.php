@@ -88,14 +88,8 @@ try {
         throw new Exception('Không thể thêm chi tiết đơn hàng');
     }
     
-    // Cập nhật số lượng tồn kho và đã bán
-    $update_stock = "UPDATE products SET stock_quantity = stock_quantity - ?, sold_quantity = sold_quantity + ? WHERE product_id = ?";
-    $stock_stmt = $conn->prepare($update_stock);
-    $stock_stmt->bind_param("iis", $quantity, $quantity, $product_id);
-    
-    if (!$stock_stmt->execute()) {
-        throw new Exception('Không thể cập nhật tồn kho');
-    }
+    // Inventory sẽ được trừ khi khách hàng xác nhận hoàn thành đơn hàng
+    // Không trừ inventory ngay khi đặt hàng
     
     // Commit transaction
     $conn->commit();

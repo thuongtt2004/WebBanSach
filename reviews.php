@@ -31,7 +31,8 @@ $stmt->execute();
 $products = $stmt->get_result();
 
 // Lấy danh sách đánh giá đã gửi
-$reviews_sql = "SELECT r.*, p.product_name, p.image_url, o.order_id
+$reviews_sql = "SELECT r.review_id, r.rating, r.content, r.images, r.review_date, 
+                       p.product_name, p.image_url, o.order_id
                 FROM reviews r
                 JOIN products p ON r.product_id = p.product_id
                 LEFT JOIN orders o ON r.order_id = o.order_id
@@ -72,7 +73,7 @@ $reviews = $reviews_stmt->get_result();
                             <p>Đơn hàng #<?php echo $product['order_id']; ?></p>
                             <p>Ngày mua: <?php echo date('d/m/Y', strtotime($product['order_date'])); ?></p>
                             
-                            <button type="button" class="btn-review" onclick="openReviewModal(<?php echo $product['product_id']; ?>, <?php echo $product['order_id']; ?>, '<?php echo htmlspecialchars($product['product_name'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($product['image_url'], ENT_QUOTES); ?>')">
+                            <button type="button" class="btn-review" onclick="openReviewModal('<?php echo $product['product_id']; ?>', <?php echo $product['order_id']; ?>, '<?php echo htmlspecialchars($product['product_name'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($product['image_url'], ENT_QUOTES); ?>')">
                                 <i class="fas fa-star"></i> Đánh giá ngay
                             </button>
                         </div>
@@ -109,6 +110,24 @@ $reviews = $reviews_stmt->get_result();
                             <?php endfor; ?>
                         </div>
                         <p><?php echo htmlspecialchars($review['content']); ?></p>
+                        
+                        <?php if (!empty($review['images'])): ?>
+                            <div class="review-images" style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                                <?php 
+                                $images = json_decode($review['images'], true);
+                                if (is_array($images)) {
+                                    foreach ($images as $image): 
+                                ?>
+                                    <img src="<?php echo htmlspecialchars($image); ?>" 
+                                         alt="Review image" 
+                                         style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; cursor: pointer;"
+                                         onclick="window.open('<?php echo htmlspecialchars($image); ?>', '_blank')">
+                                <?php 
+                                    endforeach;
+                                }
+                                ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 <?php endwhile; ?>
             <?php else: ?>
@@ -118,8 +137,8 @@ $reviews = $reviews_stmt->get_result();
     </div>
 
     <!-- Modal đánh giá -->
-    <div id="reviewModal" class="modal" style="display: none;">
-        <div class="modal-content">
+    <div id="reviewModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+        <div class="modal-content" style="background: white; padding: 30px; border-radius: 12px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
             <div class="modal-header">
                 <h3>Đánh giá sản phẩm</h3>
                 <span class="close" onclick="closeReviewModal()">&times;</span>
@@ -172,6 +191,7 @@ $reviews = $reviews_stmt->get_result();
     let currentOrderId = null;
 
     function openReviewModal(productId, orderId, productName, productImage) {
+        console.log('openReviewModal called with:', {productId, orderId, productName, productImage});
         currentProductId = productId;
         currentOrderId = orderId;
         
@@ -180,8 +200,14 @@ $reviews = $reviews_stmt->get_result();
         document.getElementById('modalOrderId').textContent = 'Đơn hàng #' + orderId;
         document.getElementById('reviewProductId').value = productId;
         document.getElementById('reviewOrderId').value = orderId;
-        document.getElementById('reviewModal').style.display = 'flex';
-        document.body.style.overflow = 'hidden';
+        const modal = document.getElementById('reviewModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            console.log('Modal opened for product:', productId);
+        } else {
+            console.error('Modal element not found');
+        }
     }
 
     function closeReviewModal() {

@@ -21,10 +21,14 @@ $promotions_query = "SELECT * FROM promotions
                      LIMIT 3";
 $promotions_result = $conn->query($promotions_query);
 
-// Lấy 4 sản phẩm mới nhất
-$sql = "SELECT p.*, c.category_name 
+// Lấy 4 sản phẩm mới nhất với rating
+$sql = "SELECT p.*, c.category_name,
+        COALESCE(AVG(r.rating), 0) as average_rating,
+        COUNT(r.review_id) as review_count
         FROM products p 
         LEFT JOIN categories c ON p.category_id = c.category_id 
+        LEFT JOIN reviews r ON p.product_id = r.product_id
+        GROUP BY p.product_id
         ORDER BY p.product_id DESC 
         LIMIT 5";
 $result = $conn->query($sql);
@@ -33,13 +37,16 @@ if (!$result) {
     die("Lỗi truy vấn: " . $conn->error);
 }
 
-// Lấy top 4 sách bán chạy trong 1 tháng gần đây
+// Lấy top 4 sách bán chạy trong 1 tháng gần đây với rating
 $bestsellers_query = "SELECT p.*, c.category_name,
-                      COALESCE(SUM(od.quantity), 0) as total_sold
+                      COALESCE(SUM(od.quantity), 0) as total_sold,
+                      COALESCE(AVG(r.rating), 0) as average_rating,
+                      COUNT(DISTINCT r.review_id) as review_count
                       FROM products p
                       LEFT JOIN categories c ON p.category_id = c.category_id
                       LEFT JOIN order_details od ON p.product_id = od.product_id
                       LEFT JOIN orders o ON od.order_id = o.order_id
+                      LEFT JOIN reviews r ON p.product_id = r.product_id
                       WHERE o.created_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
                       AND o.order_status IN ('Hoàn thành', 'Đang giao', 'Đã xác nhận')
                       GROUP BY p.product_id
@@ -200,10 +207,34 @@ $bestsellers_result = $conn->query($bestsellers_query);
                             <?php if (!empty($book['author'])): ?>
                             <p class="bestseller-author"><i class="fas fa-user-edit"></i> <?php echo htmlspecialchars($book['author']); ?></p>
                             <?php endif; ?>
+                            <p class="bestseller-price"><?php echo number_format($book['price'], 0, ',', '.'); ?> VNĐ</p>
+                            
+                            <!-- Rating ở giữa card -->
+                            <div class="product-rating" style="margin: 8px 0; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                                <?php if ($book['review_count'] > 0): ?>
+                                    <div style="color: #ffc107; font-size: 14px;">
+                                        <?php 
+                                        $avg_rating = round($book['average_rating'], 1);
+                                        for ($i = 1; $i <= 5; $i++) {
+                                            if ($i <= floor($avg_rating)) {
+                                                echo '★';
+                                            } elseif ($i - 0.5 <= $avg_rating) {
+                                                echo '⯨';
+                                            } else {
+                                                echo '☆';
+                                            }
+                                        }
+                                        ?>
+                                    </div>
+                                    <span style="color: #666; font-size: 13px;"><?php echo number_format($avg_rating, 1); ?> (<?php echo $book['review_count']; ?>)</span>
+                                <?php else: ?>
+                                    <span style="color: #999; font-size: 13px; font-style: italic;">Chưa có đánh giá</span>
+                                <?php endif; ?>
+                            </div>
+                            
                             <p class="bestseller-sold">
                                 <i class="fas fa-chart-line"></i> Đã bán: <strong><?php echo $book['total_sold'] ?? $book['sold_quantity']; ?></strong>
                             </p>
-                            <p class="bestseller-price"><?php echo number_format($book['price'], 0, ',', '.'); ?> VNĐ</p>
                             <div class="bestseller-buttons">
                                 <button onclick="event.stopPropagation(); addToCart('<?php echo $book['product_id']; ?>', 
                                                          '<?php echo addslashes($book['product_name']); ?>', 
@@ -261,6 +292,29 @@ $bestsellers_result = $conn->query($bestsellers_query);
                         <p class="book-author"><i class="fas fa-user-edit"></i> <?php echo htmlspecialchars($row['author']); ?></p>
                         <?php endif; ?>
                         <p class="book-price"><?php echo number_format($row['price'], 0, ',', '.'); ?> VNĐ</p>
+                        
+                        <!-- Rating ở giữa card -->
+                        <div class="product-rating" style="margin: 8px 0; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                            <?php if ($row['review_count'] > 0): ?>
+                                <div style="color: #ffc107; font-size: 14px;">
+                                    <?php 
+                                    $avg_rating = round($row['average_rating'], 1);
+                                    for ($i = 1; $i <= 5; $i++) {
+                                        if ($i <= floor($avg_rating)) {
+                                            echo '★';
+                                        } elseif ($i - 0.5 <= $avg_rating) {
+                                            echo '⯨';
+                                        } else {
+                                            echo '☆';
+                                        }
+                                    }
+                                    ?>
+                                </div>
+                                <span style="color: #666; font-size: 13px;"><?php echo number_format($avg_rating, 1); ?> (<?php echo $row['review_count']; ?>)</span>
+                            <?php else: ?>
+                                <span style="color: #999; font-size: 13px; font-style: italic;">Chưa có đánh giá</span>
+                            <?php endif; ?>
+                        </div>
                         <div class="button-group">
                             <button onclick="event.stopPropagation(); addToCart('<?php echo $row['product_id']; ?>', 
                                                      '<?php echo addslashes($row['product_name']); ?>', 
@@ -311,6 +365,14 @@ $bestsellers_result = $conn->query($bestsellers_query);
                     <div class="modal-description">
                         <p><strong>Giới thiệu sách:</strong></p>
                         <p id="modalDescription"></p>
+                    </div>
+                    
+                    <!-- Phần đánh giá -->
+                    <div class="modal-reviews" id="modalReviews" style="margin-top: 20px; border-top: 2px solid #eee; padding-top: 20px;">
+                        <h3 style="margin-bottom: 15px;"><i class="fas fa-star" style="color: #ffc107;"></i> Đánh giá sản phẩm</h3>
+                        <div id="reviewsContent">
+                            <p style="text-align: center; color: #999;">Đang tải đánh giá...</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -387,7 +449,75 @@ $bestsellers_result = $conn->query($bestsellers_query);
                 document.getElementById('modalFormatContainer').style.display = 'none';
             }
             
+            // Load reviews cho sản phẩm
+            loadProductReviews(id);
+            
             document.getElementById('productModal').style.display = 'block';
+        }
+        
+        function loadProductReviews(productId) {
+            fetch('get_product_reviews.php?product_id=' + productId)
+                .then(response => response.json())
+                .then(data => {
+                    const reviewsContent = document.getElementById('reviewsContent');
+                    
+                    if (data.success) {
+                        let html = '';
+                        
+                        // Hiển thị rating trung bình
+                        if (data.average_rating > 0) {
+                            html += '<div style="background:#f8f9fa;padding:15px;border-radius:8px;margin-bottom:20px;">';
+                            html += '<div style="display:flex;align-items:center;gap:15px;">';
+                            html += '<div style="text-align:center;">';
+                            html += '<div style="font-size:36px;font-weight:bold;color:#ffc107;">' + data.average_rating.toFixed(1) + '</div>';
+                            html += '<div style="color:#ffc107;font-size:20px;">';
+                            for (let i = 1; i <= 5; i++) {
+                                if (i <= Math.floor(data.average_rating)) {
+                                    html += '★';
+                                } else if (i - 0.5 <= data.average_rating) {
+                                    html += '⯨';
+                                } else {
+                                    html += '☆';
+                                }
+                            }
+                            html += '</div>';
+                            html += '<div style="color:#666;font-size:14px;margin-top:5px;">' + data.total_reviews + ' đánh giá</div>';
+                            html += '</div>';
+                            html += '</div>';
+                            html += '</div>';
+                        }
+                        
+                        // Hiển thị danh sách reviews
+                        if (data.reviews && data.reviews.length > 0) {
+                            html += '<div style="max-height:400px;overflow-y:auto;">';
+                            data.reviews.forEach(review => {
+                                html += '<div style="border-bottom:1px solid #eee;padding:15px 0;">';
+                                html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
+                                html += '<strong style="color:#333;">' + review.user_name + '</strong>';
+                                html += '<span style="color:#999;font-size:13px;">' + review.created_at + '</span>';
+                                html += '</div>';
+                                html += '<div style="color:#ffc107;margin-bottom:8px;">';
+                                for (let i = 1; i <= 5; i++) {
+                                    html += i <= review.rating ? '★' : '☆';
+                                }
+                                html += '</div>';
+                                html += '<p style="color:#666;margin:0;">' + review.content + '</p>';
+                                html += '</div>';
+                            });
+                            html += '</div>';
+                        } else {
+                            html += '<p style="text-align:center;color:#999;padding:20px;">Chưa có đánh giá nào cho sản phẩm này</p>';
+                        }
+                        
+                        reviewsContent.innerHTML = html;
+                    } else {
+                        reviewsContent.innerHTML = '<p style="text-align:center;color:#999;">Không thể tải đánh giá</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading reviews:', error);
+                    document.getElementById('reviewsContent').innerHTML = '<p style="text-align:center;color:#999;">Lỗi khi tải đánh giá</p>';
+                });
         }
 
         function closeModal() {

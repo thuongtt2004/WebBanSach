@@ -31,10 +31,6 @@ try {
         throw new Exception('Đơn hàng không tồn tại');
     }
     
-    if ($order['order_status'] !== 'Hoàn thành') {
-        throw new Exception('Chỉ có thể thao tác với đơn hàng đã hoàn thành');
-    }
-    
     // Xử lý theo action
     if ($action === 'confirm_delivery') {
         // Xác nhận đã nhận hàng
@@ -52,13 +48,21 @@ try {
         }
         
     } elseif ($action === 'request_return') {
-        // Kiểm tra thời gian (trong vòng 1 ngày kể từ khi hoàn thành)
-        $completed_date = strtotime($order['completed_date']);
-        $days_passed = floor((time() - $completed_date) / 86400);
-        $return_days_limit = 1; // Số ngày cho phép trả hàng
+        // Kiểm tra trạng thái đơn hàng
+        $valid_statuses = ['Đã giao', 'Hoàn thành'];
+        if (!in_array($order['order_status'], $valid_statuses)) {
+            throw new Exception('Chỉ có thể yêu cầu trả hàng cho đơn hàng ở trạng thái "Đã giao" hoặc "Hoàn thành"');
+        }
         
-        if ($days_passed > $return_days_limit) {
-            throw new Exception("Đã quá thời hạn trả hàng ({$return_days_limit} ngày kể từ khi nhận hàng)");
+        // Nếu đơn hàng đã hoàn thành, kiểm tra thời gian
+        if ($order['order_status'] === 'Hoàn thành') {
+            $completed_date = strtotime($order['completed_date']);
+            $days_passed = floor((time() - $completed_date) / 86400);
+            $return_days_limit = 7; // Số ngày cho phép trả hàng
+            
+            if ($days_passed > $return_days_limit) {
+                throw new Exception("Đã quá thời hạn trả hàng ({$return_days_limit} ngày kể từ khi hoàn thành đơn hàng)");
+            }
         }
         
         $return_reason = trim($_POST['return_reason'] ?? '');
@@ -66,12 +70,13 @@ try {
             throw new Exception('Vui lòng nhập lý do trả hàng');
         }
         
-        // Lưu yêu cầu trả hàng
+        // Cập nhật trạng thái đơn hàng và lưu yêu cầu trả hàng
         $update_sql = "UPDATE orders 
-                       SET return_request = 1, 
+                       SET order_status = 'Yêu cầu trả hàng',
+                           return_request = 1, 
                            return_reason = ?, 
                            return_request_date = NOW(),
-                           return_status = 'Chờ duyệt'
+                           return_status = 'Chờ xử lý'
                        WHERE order_id = ?";
         $update_stmt = $conn->prepare($update_sql);
         $update_stmt->bind_param("si", $return_reason, $order_id);

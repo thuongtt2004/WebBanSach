@@ -86,7 +86,7 @@ $stmt->close();
                         <td><?php echo date('d/m/Y', strtotime($order['created_at'])); ?></td>
                         <td><?php echo number_format($order['total_amount']); ?>đ</td>
                         <td><?php echo $order['order_status']; ?></td>
-                        <td><a href="order_detail.php?id=<?php echo $order['order_id']; ?>">Xem</a></td>
+                        <td><a href="track_order.php#order-<?php echo $order['order_id']; ?>">Xem chi tiết</a></td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>

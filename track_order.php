@@ -42,10 +42,10 @@ $return_days_limit = 1;
 
         <?php if ($orders->num_rows > 0): ?>
             <?php while ($order = $orders->fetch_assoc()): ?>
-                <div class="order-card">
+                <div class="order-card" id="order-<?php echo $order['order_id']; ?>">
                     <div class="order-header">
                         <div>
-                            <h3>Don hàng #<?php echo $order['order_id']; ?></h3>
+                            <h3>Đơn hàng #<?php echo $order['order_id']; ?></h3>
                             <p>Ngày đặt: <?php echo date('d/m/Y H:i', strtotime($order['order_date'])); ?></p>
                         </div>
                         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
@@ -137,6 +137,33 @@ $return_days_limit = 1;
                         </div>
                     </div>
 
+                    <?php if ($order['order_status'] == 'Đã giao'): ?>
+                        <!-- Trạng thái Đã giao - Hiện cả 2 nút: xác nhận và trả hàng -->
+                        <div class="order-actions" style="background:#f8f9fa;padding:20px;margin-top:15px;border-radius:8px;">
+                            <h4 style="margin-bottom:15px;color:#333;"><i class="fas fa-tasks"></i> Xác nhận đơn hàng</h4>
+                            <div style="background:#d1ecf1;border-left:4px solid #17a2b8;padding:15px;border-radius:8px;margin-bottom:15px;">
+                                <p style="margin:0;color:#0c5460;font-weight:600;">
+                                    <i class="fas fa-info-circle"></i> Đơn hàng đã được giao đến bạn
+                                </p>
+                                <p style="margin:8px 0 0 0;color:#0c5460;font-size:14px;">
+                                    Vui lòng xác nhận đã nhận hàng hoặc yêu cầu trả hàng nếu có vấn đề
+                                </p>
+                            </div>
+                            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                                <button onclick="confirmOrderCompletion(<?php echo $order['order_id']; ?>)" 
+                                        class="btn-confirm-completion" 
+                                        style="flex:1;min-width:200px;padding:15px 20px;background:#28a745;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:16px;transition:all 0.3s;">
+                                    <i class="fas fa-check-circle"></i> Xác nhận đã nhận hàng
+                                </button>
+                                <button onclick="openReturnModal(<?php echo $order['order_id']; ?>)" 
+                                        class="btn-request-return" 
+                                        style="flex:1;min-width:200px;padding:15px 20px;background:#dc3545;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:16px;transition:all 0.3s;">
+                                    <i class="fas fa-undo"></i> Yêu cầu trả hàng
+                                </button>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
                     <?php if ($order['order_status'] == 'Hoàn thành'): 
                         $completed_date = (isset($order['completed_date']) && $order['completed_date']) ? strtotime($order['completed_date']) : time();
                         $days_passed = floor((time() - $completed_date) / 86400);
@@ -208,64 +235,7 @@ $return_days_limit = 1;
                         </div>
                     <?php endif; ?>
 
-                    <?php if ($order['order_status'] == 'Hoàn thành'): ?>
-                        <div class="review-section">
-                            <h4>Đánh giá sản phẩm</h4>
-                            <?php
-                            $detail_sql = "SELECT od.*, p.product_name, p.image_url, r.rating, r.content as review_content
-                                          FROM order_details od 
-                                          JOIN products p ON od.product_id = p.product_id 
-                                          LEFT JOIN reviews r ON r.product_id = p.product_id AND r.user_id = ?
-                                          WHERE od.order_id = ?";
-                            $detail_stmt = $conn->prepare($detail_sql);
-                            if ($detail_stmt) {
-                                $detail_stmt->bind_param("ii", $_SESSION['user_id'], $order['order_id']);
-                                $detail_stmt->execute();
-                                $details = $detail_stmt->get_result();
-                                
-                                if ($details && $details->num_rows > 0) {
-                                    while ($detail = $details->fetch_assoc()):
-                            ?>
-                                <div class="product-review">
-                                    <img src="<?php echo htmlspecialchars($detail['image_url']); ?>" 
-                                         alt="<?php echo htmlspecialchars($detail['product_name']); ?>">
-                                    <div class="review-form">
-                                        <h5><?php echo htmlspecialchars($detail['product_name']); ?></h5>
-                                        <?php if (!$detail['rating']): ?>
-                                            <form method="POST" action="submit_review.php">
-                                                <input type="hidden" name="product_id" value="<?php echo $detail['product_id']; ?>">
-                                                <input type="hidden" name="order_id" value="<?php echo $order['order_id']; ?>">
-                                                <div class="rating">
-                                                    <input type="radio" name="rating" value="5" id="5"><label for="5">☆</label>
-                                                    <input type="radio" name="rating" value="4" id="4"><label for="4">☆</label>
-                                                    <input type="radio" name="rating" value="3" id="3"><label for="3">☆</label>
-                                                    <input type="radio" name="rating" value="2" id="2"><label for="2">☆</label>
-                                                    <input type="radio" name="rating" value="1" id="1"><label for="1">☆</label>
-                                                </div>
-                                                <textarea name="review_content" placeholder="Nhập đánh giá của bạn"></textarea>
-                                                <button type="submit" name="submit_review">Gửi đánh giá</button>
-                                            </form>
-                                        <?php else: ?>
-                                            <div class="existing-review">
-                                                <div class="stars">
-                                                    <?php for($i = 1; $i <= 5; $i++): ?>
-                                                        <span class="<?php echo $i <= $detail['rating'] ? 'filled' : ''; ?>">★</span>
-                                                    <?php endfor; ?>
-                                                </div>
-                                                <p><?php echo htmlspecialchars($detail['review_content']); ?></p>
-                                            </div>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                            <?php 
-                                    endwhile;
-                                } else {
-                                    echo '<p style="color:#999;padding:20px;text-align:center;">Không có sản phẩm trong đơn hàng này</p>';
-                                }
-                            }
-                            ?>
-                        </div>
-                    <?php endif; ?>
+
                 </div>
             <?php endwhile; ?>
         <?php else: ?>
@@ -314,7 +284,29 @@ $return_days_limit = 1;
     </div>
 
     <script>
-        // Xác nhận đã nhận hàng
+        // Xác nhận hoàn thành đơn hàng (từ Đã giao -> Hoàn thành)
+        function confirmOrderCompletion(orderId) {
+            if (confirm('Xác nhận bạn đã nhận hàng và hài lòng với sản phẩm?\n\nSau khi xác nhận, đơn hàng sẽ chuyển sang trạng thái "Hoàn thành".')) {
+                fetch('confirm_order_completion.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: 'order_id=' + orderId
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    if (data.success) {
+                        location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra. Vui lòng thử lại!');
+                });
+            }
+        }
+
+        // Xác nhận đã nhận hàng (legacy - cho đơn hoàn thành)
         function confirmDelivery(orderId) {
             if (confirm('Xác nhận bạn đã nhận hàng và hài lòng với sản phẩm?')) {
                 fetch('process_order_action.php', {
@@ -380,6 +372,12 @@ $return_days_limit = 1;
         
         // Style hover cho buttons
         document.addEventListener('DOMContentLoaded', function() {
+            const confirmCompletionBtns = document.querySelectorAll('.btn-confirm-completion');
+            confirmCompletionBtns.forEach(btn => {
+                btn.addEventListener('mouseenter', () => btn.style.background = '#218838');
+                btn.addEventListener('mouseleave', () => btn.style.background = '#28a745');
+            });
+            
             const confirmBtns = document.querySelectorAll('.btn-confirm-delivery');
             confirmBtns.forEach(btn => {
                 btn.addEventListener('mouseenter', () => btn.style.background = '#218838');

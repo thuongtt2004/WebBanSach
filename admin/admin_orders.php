@@ -22,9 +22,13 @@ if(isset($_POST['order_id']) && isset($_POST['status'])) {
     $order_data = $old_status_result->fetch_assoc();
     $old_status = $order_data['order_status'];
     
-    // Kiểm tra nếu đơn hàng đã hoàn thành hoặc đã hủy thì không cho phép thay đổi
-    if ($old_status === 'Hoàn thành' || $old_status === 'Đã hủy') {
-        $error = 'Không thể thay đổi trạng thái đơn hàng đã hoàn thành hoặc đã hủy!';
+    // Kiểm tra nếu đơn hàng đã hoàn thành, đã hủy, hoặc đã hoàn tiền thì không cho phép thay đổi
+    if (in_array($old_status, ['Hoàn thành', 'Đã hủy', 'Đã hoàn tiền'])) {
+        $error = 'Không thể thay đổi trạng thái đơn hàng đã khóa (Hoàn thành/Đã hủy/Đã hoàn tiền)!';
+    } 
+    // Ngăn admin set trạng thái "Hoàn thành" trực tiếp
+    elseif ($new_status === 'Hoàn thành') {
+        $error = 'Admin không thể đặt trạng thái "Hoàn thành" trực tiếp. Chỉ khách hàng mới có thể xác nhận hoàn thành đơn hàng!';
     } else {
         $message = 'Cập nhật trạng thái thành công!';
         
@@ -35,60 +39,75 @@ if(isset($_POST['order_id']) && isset($_POST['status'])) {
         $details_stmt->execute();
         $details_result = $details_stmt->get_result();
     
-    // Chuyển sang trạng thái "Hoàn thành" - Trừ tồn kho và tăng đã bán
-    if ($new_status === 'Hoàn thành' && $old_status !== 'Hoàn thành') {
-        $update_stock_sql = "UPDATE products 
-                             SET stock_quantity = stock_quantity - ?, 
-                                 sold_quantity = sold_quantity + ? 
-                             WHERE product_id = ?";
-        $update_stock_stmt = $conn->prepare($update_stock_sql);
-        
-        while ($detail = $details_result->fetch_assoc()) {
-            $update_stock_stmt->bind_param("iis", $detail['quantity'], $detail['quantity'], $detail['product_id']);
-            $update_stock_stmt->execute();
+        // Chuyển sang trạng thái "Đã hủy" - Hoàn lại nếu đã trừ trước đó
+        if ($new_status === 'Đã hủy' && $old_status === 'Hoàn thành') {
+            // Nếu đơn đã hoàn thành trước đó, hoàn lại tồn kho
+            $restore_stock_sql = "UPDATE products 
+                                  SET stock_quantity = stock_quantity + ?, 
+                                      sold_quantity = sold_quantity - ? 
+                                  WHERE product_id = ?";
+            $restore_stock_stmt = $conn->prepare($restore_stock_sql);
+            
+            $details_stmt->execute();
+            $details_result = $details_stmt->get_result();
+            
+            while ($detail = $details_result->fetch_assoc()) {
+                $restore_stock_stmt->bind_param("iis", $detail['quantity'], $detail['quantity'], $detail['product_id']);
+                $restore_stock_stmt->execute();
+            }
+            $message .= ' Đã hoàn lại tồn kho.';
         }
-        $message .= ' Đã trừ tồn kho và cập nhật số lượng đã bán.';
-    }
-    // Chuyển sang trạng thái "Đã hủy" - Hoàn lại nếu đã trừ trước đó
-    elseif ($new_status === 'Đã hủy' && $old_status === 'Hoàn thành') {
-        // Nếu đơn đã hoàn thành trước đó, hoàn lại tồn kho
-        $restore_stock_sql = "UPDATE products 
-                              SET stock_quantity = stock_quantity + ?, 
-                                  sold_quantity = sold_quantity - ? 
-                              WHERE product_id = ?";
-        $restore_stock_stmt = $conn->prepare($restore_stock_sql);
-        
-        $details_stmt->execute();
-        $details_result = $details_stmt->get_result();
-        
-        while ($detail = $details_result->fetch_assoc()) {
-            $restore_stock_stmt->bind_param("iis", $detail['quantity'], $detail['quantity'], $detail['product_id']);
-            $restore_stock_stmt->execute();
+        // Hủy đơn chưa hoàn thành - Không cần hoàn lại
+        elseif ($new_status === 'Đã hủy') {
+            $message .= ' Đơn hàng chưa giao nên không cần hoàn lại tồn kho.';
         }
-        $message .= ' Đã hoàn lại tồn kho.';
-    }
-    // Hủy đơn chưa hoàn thành - Không cần hoàn lại
-    elseif ($new_status === 'Đã hủy') {
-        $message .= ' Đơn hàng chưa giao nên không cần hoàn lại tồn kho.';
-    }
-    
-    // Cập nhật trạng thái đơn hàng
-    $stmt = $conn->prepare("UPDATE orders SET order_status = ? WHERE order_id = ?");
-    $stmt->bind_param("si", $new_status, $order_id);
-    
-    if($stmt->execute()) {
-        // Nếu chuyển sang "Hoàn thành", lưu ngày hoàn thành
-        if ($new_status === 'Hoàn thành') {
-            $update_completed = $conn->prepare("UPDATE orders SET completed_date = NOW() WHERE order_id = ?");
-            $update_completed->bind_param("i", $order_id);
-            $update_completed->execute();
+        // Hoàn tiền - Hoàn lại tồn kho nếu đơn đã hoàn thành trước đó
+        elseif ($new_status === 'Đã hoàn tiền') {
+            // Kiểm tra xem đơn hàng có từng được hoàn thành không (đã trừ inventory)
+            $check_completed_sql = "SELECT completed_date FROM orders WHERE order_id = ?";
+            $check_stmt = $conn->prepare($check_completed_sql);
+            $check_stmt->bind_param("i", $order_id);
+            $check_stmt->execute();
+            $check_result = $check_stmt->get_result();
+            $order_info = $check_result->fetch_assoc();
+            
+            if ($order_info && $order_info['completed_date']) {
+                // Đơn đã từng hoàn thành, cần hoàn lại tồn kho
+                $restore_stock_sql = "UPDATE products 
+                                      SET stock_quantity = stock_quantity + ?, 
+                                          sold_quantity = sold_quantity - ? 
+                                      WHERE product_id = ?";
+                $restore_stock_stmt = $conn->prepare($restore_stock_sql);
+                
+                $details_stmt->execute();
+                $details_result = $details_stmt->get_result();
+                
+                while ($detail = $details_result->fetch_assoc()) {
+                    $restore_stock_stmt->bind_param("iis", $detail['quantity'], $detail['quantity'], $detail['product_id']);
+                    $restore_stock_stmt->execute();
+                }
+                $message .= ' Đã hoàn lại tồn kho.';
+            } else {
+                $message .= ' Đơn hàng chưa hoàn thành nên không cần hoàn lại tồn kho.';
+            }
+            
+            // Lưu ngày hoàn tiền
+            $refund_date_sql = "UPDATE orders SET refund_date = NOW() WHERE order_id = ?";
+            $refund_stmt = $conn->prepare($refund_date_sql);
+            $refund_stmt->bind_param("i", $order_id);
+            $refund_stmt->execute();
         }
         
-        echo "<script>alert('$message'); window.location.href='admin_orders.php';</script>";
-    } else {
-        echo "<script>alert('Lỗi khi cập nhật: " . $conn->error . "');</script>";
-    }
-    $stmt->close();
+        // Cập nhật trạng thái đơn hàng
+        $stmt = $conn->prepare("UPDATE orders SET order_status = ? WHERE order_id = ?");
+        $stmt->bind_param("si", $new_status, $order_id);
+        
+        if($stmt->execute()) {
+            echo "<script>alert('$message'); window.location.href='admin_orders.php';</script>";
+        } else {
+            echo "<script>alert('Lỗi khi cập nhật: " . $conn->error . "');</script>";
+        }
+        $stmt->close();
     }
 }
 
@@ -222,20 +241,38 @@ $result = $conn->query($sql);
                         <td><?php echo date('d/m/Y H:i', strtotime($order['created_at'])); ?></td>
                         <td>
                             <?php 
-                            $is_locked = ($order['order_status'] === 'Hoàn thành' || $order['order_status'] === 'Đã hủy');
+                            $is_locked = in_array($order['order_status'], ['Hoàn thành', 'Đã hủy', 'Đã hoàn tiền']);
                             ?>
                             <form method="POST" action="" style="display: flex; align-items: center; gap: 5px;">
                                 <input type="hidden" name="order_id" value="<?php echo $order['order_id']; ?>">
-                                <select name="status" class="status-select" <?php echo $is_locked ? 'disabled' : ''; ?>>
+                                <?php if ($is_locked): ?>
+                                    <i class="fas fa-lock" style="color:#dc3545;margin-right:5px;" title="Đơn hàng đã khóa"></i>
+                                <?php endif; ?>
+                                <select name="status" class="status-select" <?php echo $is_locked ? 'disabled' : ''; ?> style="<?php echo $is_locked ? 'opacity:0.6;cursor:not-allowed;' : ''; ?>">
                                     <option value="Chờ thanh toán" <?php if($order['order_status'] == 'Chờ thanh toán') echo 'selected'; ?>>Chờ thanh toán</option>
                                     <option value="Chờ xác nhận" <?php if($order['order_status'] == 'Chờ xác nhận') echo 'selected'; ?>>Chờ xác nhận</option>
                                     <option value="Đã xác nhận" <?php if($order['order_status'] == 'Đã xác nhận') echo 'selected'; ?>>Đã xác nhận</option>
                                     <option value="Đang giao" <?php if($order['order_status'] == 'Đang giao') echo 'selected'; ?>>Đang giao</option>
-                                    <option value="Hoàn thành" <?php if($order['order_status'] == 'Hoàn thành') echo 'selected'; ?>>Hoàn thành</option>
+                                    <option value="Đã giao" <?php if($order['order_status'] == 'Đã giao') echo 'selected'; ?>>Đã giao</option>
+                                    <?php if($order['order_status'] == 'Yêu cầu trả hàng'): ?>
+                                        <option value="Yêu cầu trả hàng" selected>Yêu cầu trả hàng</option>
+                                    <?php endif; ?>
+                                    <?php if($order['order_status'] == 'Đang trả hàng' || $order['order_status'] == 'Yêu cầu trả hàng'): ?>
+                                        <option value="Đang trả hàng" <?php if($order['order_status'] == 'Đang trả hàng') echo 'selected'; ?>>Đang trả hàng</option>
+                                    <?php endif; ?>
+                                    <?php if($order['order_status'] == 'Đang trả hàng'): ?>
+                                        <option value="Đã hoàn tiền" <?php if($order['order_status'] == 'Đã hoàn tiền') echo 'selected'; ?>>Đã hoàn tiền</option>
+                                    <?php endif; ?>
+                                    <?php if($order['order_status'] == 'Đã hoàn tiền'): ?>
+                                        <option value="Đã hoàn tiền" selected>Đã hoàn tiền</option>
+                                    <?php endif; ?>
+                                    <?php if($order['order_status'] == 'Hoàn thành'): ?>
+                                        <option value="Hoàn thành" selected>Hoàn thành</option>
+                                    <?php endif; ?>
                                     <option value="Đã hủy" <?php if($order['order_status'] == 'Đã hủy') echo 'selected'; ?>>Đã hủy</option>
                                 </select>
-                                <button type="submit" class="btn-update-status" <?php echo $is_locked ? 'disabled' : ''; ?>>
-                                    <i class="fas fa-save"></i> <?php echo $is_locked ? 'Đã khóa' : 'Lưu'; ?>
+                                <button type="submit" class="btn-update-status" <?php echo $is_locked ? 'disabled' : ''; ?> style="<?php echo $is_locked ? 'opacity:0.6;cursor:not-allowed;' : ''; ?>">
+                                    <i class="fas <?php echo $is_locked ? 'fa-lock' : 'fa-save'; ?>"></i> <?php echo $is_locked ? 'Đã khóa' : 'Lưu'; ?>
                                 </button>
                             </form>
                         </td>
@@ -271,6 +308,21 @@ $result = $conn->query($sql);
                                 <p><strong>Email:</strong> <?php echo htmlspecialchars($order['email']); ?></p>
                                 <?php if ($order['notes']): ?>
                                     <p><strong>Ghi chú:</strong> <?php echo htmlspecialchars($order['notes']); ?></p>
+                                <?php endif; ?>
+                                <?php if ($order['order_status'] === 'Yêu cầu trả hàng' && $order['return_reason']): ?>
+                                    <div style="background:#fff3cd;border-left:4px solid #ffc107;padding:15px;margin:10px 0;border-radius:8px;">
+                                        <p style="margin:0;color:#856404;font-weight:600;">
+                                            <i class="fas fa-undo"></i> Lý do trả hàng:
+                                        </p>
+                                        <p style="margin:8px 0 0 0;color:#856404;">
+                                            <?php echo htmlspecialchars($order['return_reason']); ?>
+                                        </p>
+                                        <?php if ($order['return_request_date']): ?>
+                                            <p style="margin:8px 0 0 0;color:#856404;font-size:13px;">
+                                                <i class="fas fa-clock"></i> Ngày yêu cầu: <?php echo date('d/m/Y H:i', strtotime($order['return_request_date'])); ?>
+                                            </p>
+                                        <?php endif; ?>
+                                    </div>
                                 <?php endif; ?>
                                 <p><strong>Hình thức thanh toán:</strong> 
                                     <?php echo $order['payment_method'] === 'bank_transfer' ? 'Chuyển khoản' : 'COD'; ?>
