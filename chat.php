@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once 'config/connect.php';
+require_once 'session_init.php';
 
 // Kiểm tra đăng nhập
 if (!isset($_SESSION['user_id'])) {
@@ -39,6 +39,8 @@ $mark_read = "UPDATE messages SET is_read = 1 WHERE receiver_id = ? AND sender_t
 $read_stmt = $conn->prepare($mark_read);
 $read_stmt->bind_param("i", $user_id);
 $read_stmt->execute();
+
+require_once 'header.php';
 ?>
 
 <!DOCTYPE html>
@@ -53,7 +55,6 @@ $read_stmt->execute();
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <?php include 'header.php'; ?>
 
     <div class="chat-container">
         <div class="chat-header">

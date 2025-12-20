@@ -1,5 +1,6 @@
 <?php
 require_once 'config/connect.php';
+require_once 'header.php';
 
 // Lấy danh sách tác giả có sách (distinct)
 $sql = "SELECT DISTINCT author, COUNT(*) as book_count 
@@ -25,7 +26,6 @@ if (!$result) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <?php require_once 'header.php'; ?>
 
     <section class="authors-section">
         <div class="authors-header">

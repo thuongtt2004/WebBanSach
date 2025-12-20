@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once 'config/connect.php';
+require_once 'session_init.php';
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
@@ -76,6 +76,8 @@ $wishlist_stmt = $conn->prepare($wishlist_sql);
 $wishlist_stmt->bind_param("i", $user_id);
 $wishlist_stmt->execute();
 $wishlist_items = $wishlist_stmt->get_result();
+
+require_once 'header.php';
 ?>
 
 <!DOCTYPE html>
@@ -316,7 +318,6 @@ $wishlist_items = $wishlist_stmt->get_result();
     </style>
 </head>
 <body>
-    <?php include 'header.php'; ?>
     
     <div class="profile-container">
         <h1><i class="fas fa-user-circle"></i> Trang cá nhân</h1>

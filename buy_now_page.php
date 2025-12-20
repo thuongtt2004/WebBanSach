@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once 'config/connect.php';
+require_once 'session_init.php';
 
 // Kiểm tra đăng nhập
 if (!isset($_SESSION['user_id'])) {
@@ -49,6 +49,8 @@ $user_stmt->execute();
 $user = $user_stmt->get_result()->fetch_assoc();
 
 $total = $product['price'];
+
+require_once 'header.php';
 ?>
 
 <!DOCTYPE html>
@@ -64,7 +66,6 @@ $total = $product['price'];
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
-    <?php require_once 'header.php'; ?>
 
     <h1 class="page-title"><i class="fas fa-shopping-bag"></i> Mua ngay</h1>
 

@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once 'config/db.php';
+require_once 'header.php';
 
 $slug = isset($_GET['slug']) ? trim($_GET['slug']) : '';
 
@@ -78,7 +78,6 @@ $total_comments = $count_result->fetch_assoc()['total'];
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <?php include 'header.php'; ?>
 
     <!-- Breadcrumb -->
     <div class="breadcrumb-container">
@@ -507,21 +506,29 @@ $total_comments = $count_result->fetch_assoc()['total'];
         }
         
         .article-featured-image {
-            margin-bottom: 40px;
-            border-radius: 16px;
+            margin: 30px auto 40px;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            max-width: 100%;
+            max-height: 450px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f8f9fa;
         }
         
         .article-featured-image img {
             width: 100%;
-            height: auto;
+            height: 100%;
+            max-height: 450px;
+            object-fit: cover;
             display: block;
-            transition: transform 0.3s;
+            transition: transform 0.3s ease;
         }
 
         .article-featured-image:hover img {
-            transform: scale(1.02);
+            transform: scale(1.05);
         }
         
         .article-content {

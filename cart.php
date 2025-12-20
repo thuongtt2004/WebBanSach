@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once 'config/connect.php';
+require_once 'session_init.php';
 
 // Kiểm tra đăng nhập
 if (!isset($_SESSION['user_id'])) {
@@ -28,6 +28,8 @@ $user_stmt = $conn->prepare($user_sql);
 $user_stmt->bind_param("i", $user_id);
 $user_stmt->execute();
 $user = $user_stmt->get_result()->fetch_assoc();
+
+require_once 'header.php';
 ?>
 
 <!DOCTYPE html>
@@ -43,7 +45,6 @@ $user = $user_stmt->get_result()->fetch_assoc();
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
-    <?php require_once 'header.php'; ?>
 
     <h1 class="page-title"><i class="fas fa-shopping-cart"></i> Giỏ hàng của bạn</h1>
 

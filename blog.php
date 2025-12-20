@@ -1,5 +1,6 @@
 <?php
 require_once 'config/db.php';
+require_once 'header.php';
 
 // Lấy tham số lọc
 $category = isset($_GET['category']) && is_numeric($_GET['category']) ? (int)$_GET['category'] : 0;
@@ -52,7 +53,6 @@ $categories_result = $conn->query($categories_sql);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <?php include 'header.php'; ?>
 
     <!-- Breadcrumb -->
     <div class="breadcrumb-container">

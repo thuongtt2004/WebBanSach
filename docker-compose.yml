@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # PHP Apache application (Docker)
+  php-apache:
+    build:
+      context: .
+      dockerfile: Dockerfile.php
+    container_name: tthuong-php-docker
+    ports:
+      - "8000:80"  # Docker PHP chạy port 8000
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - mysql
+    restart: unless-stopped
+
+  # Node.js application
+  app:
+    build: .
+    container_name: tthuong-nodejs
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    restart: unless-stopped
+
+  # MySQL database (Docker)
+  mysql:
+    image: mysql:8.0
+    container_name: tthuong-mysql-docker
+    command: --sql_mode=""
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: tthuong_db
+    ports:
+      - "3307:3306"  # Docker MySQL chạy port 3307
+    volumes:
+      - mysql-data:/var/lib/mysql
+    restart: unless-stopped
+
+  # phpMyAdmin cho Docker MySQL
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: tthuong-phpmyadmin-docker
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+    ports:
+      - "8081:80"  # Docker phpMyAdmin chạy port 8081
+    depends_on:
+      - mysql
+    restart: unless-stopped
+
+volumes:
+  mysql-data:

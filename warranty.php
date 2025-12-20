@@ -1,6 +1,6 @@
 <?php
-session_start();
-require_once 'config/connect.php'; // Thêm kết nối database nếu cần
+require_once 'config/connect.php';
+require_once 'header.php';
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -11,7 +11,7 @@ require_once 'config/connect.php'; // Thêm kết nối database nếu cần
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <?php require_once 'header.php'; ?>
+
 
     <main class="warranty-content">
         <h2>Chính sách bảo hành</h2>

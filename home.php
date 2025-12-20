@@ -1,5 +1,6 @@
 <?php
 require_once 'config/connect.php';
+require_once 'header.php';
 
 // Lấy flash sale đang hoạt động
 $now = date('Y-m-d H:i:s');
@@ -69,7 +70,6 @@ $bestsellers_result = $conn->query($bestsellers_query);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <?php require_once 'header.php'; ?>
 
     <!-- Flash Sale Banner -->
     <?php if ($flash_sale): ?>

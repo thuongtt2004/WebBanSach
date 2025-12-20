@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once('config/connect.php');
+require_once 'session_init.php';
 
 $error = '';
 

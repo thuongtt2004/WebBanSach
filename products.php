@@ -1,5 +1,6 @@
 <?php
 require_once 'config/connect.php';
+require_once 'header.php';
 
 // Lấy danh sách sách từ database với rating trung bình
 $sql = "SELECT p.*, c.category_name,
@@ -27,7 +28,6 @@ if (!$result) {
     <link rel="stylesheet" href="css/sanpham.css">
 </head>
 <body>
-    <?php require_once 'header.php'; ?>
 
     <!-- Breadcrumb -->
     <div class="breadcrumb-container">

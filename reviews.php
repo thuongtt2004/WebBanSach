@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once 'config/connect.php';
+require_once 'session_init.php';
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: login_page.php');
@@ -42,6 +42,8 @@ $reviews_stmt = $conn->prepare($reviews_sql);
 $reviews_stmt->bind_param("i", $user_id);
 $reviews_stmt->execute();
 $reviews = $reviews_stmt->get_result();
+
+require_once 'header.php';
 ?>
 
 <!DOCTYPE html>
@@ -55,7 +57,6 @@ $reviews = $reviews_stmt->get_result();
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <?php include 'header.php'; ?>
 
     <div class="reviews-container">
         <h2>Đánh giá sản phẩm</h2>

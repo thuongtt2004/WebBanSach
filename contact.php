@@ -1,5 +1,6 @@
 <?php
 require_once 'config/db.php';
+require_once 'header.php';
 
 $success_message = '';
 $error_message = '';
@@ -44,7 +45,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <?php include 'header.php'; ?>
 
     <!-- Breadcrumb -->
     <div class="breadcrumb-container">

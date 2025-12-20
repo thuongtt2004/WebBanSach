@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once 'config/connect.php';
+require_once 'session_init.php';
 /** @var mysqli $conn */
 
 if (!isset($_SESSION['user_id'])) {
@@ -22,6 +22,8 @@ $orders = $order_stmt->get_result();
 
 // Số ngày cho phép trả hàng
 $return_days_limit = 1;
+
+require_once 'header.php';
 ?>
 
 <!DOCTYPE html>
@@ -35,7 +37,6 @@ $return_days_limit = 1;
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <?php include 'header.php'; ?>
 
     <div class="order-tracking">
         <h2>Theo dõi đơn hàng</h2>
