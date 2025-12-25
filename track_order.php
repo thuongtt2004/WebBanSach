@@ -73,6 +73,15 @@ require_once 'header.php';
                             <?php endif; ?>
                         </p>
                         
+                        <!-- Nút Chat về đơn hàng -->
+                        <div style="margin: 15px 0;">
+                            <button onclick="chatAboutOrder(<?php echo $order['order_id']; ?>)" 
+                                    class="btn-chat-order"
+                                    style="padding:12px 20px;background:#007bff;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:15px;transition:all 0.3s;display:flex;align-items:center;gap:8px;width:100%;justify-content:center;">
+                                <i class="fas fa-comment-dots"></i> Chat về đơn hàng này
+                            </button>
+                        </div>
+                        
                         <?php if ($order['payment_method'] === 'bank_transfer' && $order['order_status'] === 'Chờ thanh toán'): 
                             $created_time = strtotime($order['order_date']);
                             $hours_passed = floor((time() - $created_time) / 3600);
@@ -192,6 +201,18 @@ require_once 'header.php';
                                         <p style="margin:8px 0 0 0;color:#856404;font-size:14px;">
                                             <strong>Lý do:</strong> <?php echo htmlspecialchars($order['return_reason']); ?>
                                         </p>
+                                    <?php endif; ?>
+                                    
+                                    <?php 
+                                    // Cho phép hủy yêu cầu nếu đang ở trạng thái Chờ duyệt hoặc Đã duyệt
+                                    $can_cancel = in_array($return_status, ['Chờ duyệt', 'Chờ xử lý', 'Đã duyệt', '']);
+                                    ?>
+                                    <?php if ($can_cancel): ?>
+                                        <button onclick="cancelReturnRequest(<?php echo $order['order_id']; ?>)" 
+                                                class="btn-cancel-return" 
+                                                style="margin-top:10px;padding:8px 16px;background:#6c757d;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:14px;transition:all 0.3s;">
+                                            <i class="fas fa-ban"></i> Hủy yêu cầu trả hàng
+                                        </button>
                                     <?php endif; ?>
                                 </div>
                             <?php elseif ($customer_confirmed == 1): ?>
@@ -339,6 +360,29 @@ require_once 'header.php';
             document.getElementById('returnModal').style.display = 'none';
             document.getElementById('returnForm').reset();
         }
+        
+        // Hủy yêu cầu trả hàng
+        function cancelReturnRequest(orderId) {
+            if (confirm('Bạn có chắc chắn muốn hủy yêu cầu trả hàng này?')) {
+                const formData = new FormData();
+                formData.append('order_id', orderId);
+                
+                fetch('cancel_return_request.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    if (data.success) {
+                        location.reload();
+                    }
+                })
+                .catch(error => {
+                    alert('Có lỗi xảy ra. Vui lòng thử lại!');
+                });
+            }
+        }
 
         // Xử lý submit form trả hàng
         document.getElementById('returnForm').addEventListener('submit', function(e) {
@@ -390,7 +434,25 @@ require_once 'header.php';
                 btn.addEventListener('mouseenter', () => btn.style.background = '#c82333');
                 btn.addEventListener('mouseleave', () => btn.style.background = '#dc3545');
             });
+            
+            const chatOrderBtns = document.querySelectorAll('.btn-chat-order');
+            chatOrderBtns.forEach(btn => {
+                btn.addEventListener('mouseenter', () => btn.style.background = '#0056b3');
+                btn.addEventListener('mouseleave', () => btn.style.background = '#007bff');
+            });
+            
+            const cancelReturnBtns = document.querySelectorAll('.btn-cancel-return');
+            cancelReturnBtns.forEach(btn => {
+                btn.addEventListener('mouseenter', () => btn.style.background = '#5a6268');
+                btn.addEventListener('mouseleave', () => btn.style.background = '#6c757d');
+            });
         });
+        
+        // Chức năng chat về đơn hàng
+        function chatAboutOrder(orderId) {
+            // Mở trang chat với order_id được truyền vào
+            window.location.href = 'chat.php?order_id=' + orderId;
+        }
     </script>
 
     <?php include 'footer.php'; ?>

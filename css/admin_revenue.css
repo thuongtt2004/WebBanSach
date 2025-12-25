@@ -81,19 +81,19 @@
 }
 
 .stat-card.primary .stat-icon {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #333333;
 }
 
 .stat-card.success .stat-icon {
-    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    background: #555555;
 }
 
 .stat-card.info .stat-icon {
-    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    background: #666666;
 }
 
 .stat-card.warning .stat-icon {
-    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    background: #777777;
 }
 
 .stat-icon {

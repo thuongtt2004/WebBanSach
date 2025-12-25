@@ -16,8 +16,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $message = trim($_POST['message'] ?? '');
 $sender_type = $_POST['sender_type'] ?? '';
+$order_id = isset($_POST['order_id']) ? intval($_POST['order_id']) : null;
+$message_type = $order_id ? 'order' : 'text';
 
-if (empty($message)) {
+if (empty($message) && !$order_id) {
     echo json_encode(['success' => false, 'message' => 'Tin nhắn không được để trống']);
     exit();
 }
@@ -28,8 +30,8 @@ try {
         $sender_id = $_SESSION['user_id'];
         $receiver_id = null; // Admin sẽ nhận được
         
-        $stmt = $conn->prepare("INSERT INTO messages (sender_id, receiver_id, sender_type, message) VALUES (?, ?, 'user', ?)");
-        $stmt->bind_param("iis", $sender_id, $receiver_id, $message);
+        $stmt = $conn->prepare("INSERT INTO messages (sender_id, receiver_id, sender_type, message, order_id, message_type) VALUES (?, ?, 'user', ?, ?, ?)");
+        $stmt->bind_param("iisis", $sender_id, $receiver_id, $message, $order_id, $message_type);
         
     } elseif ($sender_type === 'admin') {
         // Admin gửi tin nhắn cho user
@@ -41,8 +43,8 @@ try {
             exit();
         }
         
-        $stmt = $conn->prepare("INSERT INTO messages (sender_id, receiver_id, sender_type, message) VALUES (?, ?, 'admin', ?)");
-        $stmt->bind_param("iis", $sender_id, $receiver_id, $message);
+        $stmt = $conn->prepare("INSERT INTO messages (sender_id, receiver_id, sender_type, message, order_id, message_type) VALUES (?, ?, 'admin', ?, ?, ?)");
+        $stmt->bind_param("iisis", $sender_id, $receiver_id, $message, $order_id, $message_type);
     } else {
         echo json_encode(['success' => false, 'message' => 'Loại người gửi không hợp lệ']);
         exit();

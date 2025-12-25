@@ -191,7 +191,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .breadcrumb a {
-            color: #007bff;
+            color: #333333;
             text-decoration: none;
         }
         
@@ -253,12 +253,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .info-icon {
             width: 50px;
             height: 50px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #333333;
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
+            color: #EBE9E5;
             font-size: 22px;
             flex-shrink: 0;
         }
@@ -276,7 +276,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .info-content a {
-            color: #667eea;
+            color: #333333;
             text-decoration: none;
         }
         

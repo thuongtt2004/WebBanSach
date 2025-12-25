@@ -76,6 +76,8 @@ $categories = $conn->query("SELECT * FROM blog_categories WHERE status = 'active
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .blog-container {
+            max-width: 1400px;
+            margin: 0 auto;
             padding: 20px;
         }
         .page-header {

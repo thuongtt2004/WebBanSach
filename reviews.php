@@ -32,6 +32,7 @@ $products = $stmt->get_result();
 
 // Lấy danh sách đánh giá đã gửi
 $reviews_sql = "SELECT r.review_id, r.rating, r.content, r.images, r.review_date, 
+                       r.admin_reply, r.admin_reply_date,
                        p.product_name, p.image_url, o.order_id
                 FROM reviews r
                 JOIN products p ON r.product_id = p.product_id
@@ -127,6 +128,21 @@ require_once 'header.php';
                                     endforeach;
                                 }
                                 ?>
+                            </div>
+                        <?php endif; ?>
+                        
+                        <?php if (!empty($review['admin_reply'])): ?>
+                            <div style="background: #f0f8ff; border-left: 3px solid #007bff; padding: 12px; margin-top: 15px; border-radius: 6px;">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                    <i class="fas fa-user-shield" style="color: #007bff;"></i>
+                                    <strong style="color: #007bff;">Phản hồi từ Shop</strong>
+                                    <span style="color: #999; font-size: 13px; margin-left: auto;">
+                                        <?php echo date('d/m/Y H:i', strtotime($review['admin_reply_date'])); ?>
+                                    </span>
+                                </div>
+                                <p style="color: #555; margin: 0; line-height: 1.6;">
+                                    <?php echo htmlspecialchars($review['admin_reply']); ?>
+                                </p>
                             </div>
                         <?php endif; ?>
                     </div>

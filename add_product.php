@@ -40,6 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         $author = $_POST['author'] ?? null;
         $publisher = $_POST['publisher'] ?? null;
+        $fileName = basename($_FILES["product-image"]["name"]);
         $targetFile = $targetDir . $fileName;
         $imageFileType = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
         
@@ -314,7 +315,6 @@ $categories = $conn->query("SELECT * FROM categories");
                     <select id="book_format" name="book_format">
                         <option value="Bìa mềm" selected>Bìa mềm</option>
                         <option value="Bìa cứng">Bìa cứng</option>
-                        <option value="Ebook">Ebook</option>
                     </select>
                 </div>
 

@@ -2,7 +2,18 @@
 require_once 'config/connect.php';
 require_once 'header.php';
 
-// Lấy danh sách sách từ database với rating trung bình
+// Phân trang
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$limit = 12; // Hiển thị 12 sản phẩm mỗi trang
+$offset = ($page - 1) * $limit;
+
+// Đếm tổng số sản phẩm
+$count_sql = "SELECT COUNT(DISTINCT p.product_id) as total FROM products p";
+$count_result = $conn->query($count_sql);
+$total_products = $count_result->fetch_assoc()['total'];
+$total_pages = ceil($total_products / $limit);
+
+// Lấy danh sách sách từ database với rating trung bình và phân trang
 $sql = "SELECT p.*, c.category_name,
         COALESCE(AVG(r.rating), 0) as average_rating,
         COUNT(r.review_id) as review_count
@@ -10,8 +21,12 @@ $sql = "SELECT p.*, c.category_name,
         LEFT JOIN categories c ON p.category_id = c.category_id 
         LEFT JOIN reviews r ON p.product_id = r.product_id
         GROUP BY p.product_id
-        ORDER BY p.product_id DESC";
-$result = $conn->query($sql);
+        ORDER BY p.product_id DESC
+        LIMIT ? OFFSET ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("ii", $limit, $offset);
+$stmt->execute();
+$result = $stmt->get_result();
 
 if (!$result) {
     die("Lỗi truy vấn: " . $conn->error);
@@ -213,6 +228,54 @@ if (!$result) {
             }
             ?>
         </div>
+        
+        <!-- Phân trang -->
+        <?php if ($total_pages > 1): ?>
+        <div class="pagination">
+            <?php if ($page > 1): ?>
+                <a href="?page=<?php echo $page - 1; ?>" class="pagination-btn">
+                    <i class="fas fa-chevron-left"></i> Trước
+                </a>
+            <?php endif; ?>
+            
+            <?php
+            // Hiển thị các trang
+            $start_page = max(1, $page - 2);
+            $end_page = min($total_pages, $page + 2);
+            
+            if ($start_page > 1): ?>
+                <a href="?page=1" class="pagination-number">1</a>
+                <?php if ($start_page > 2): ?>
+                    <span class="pagination-dots">...</span>
+                <?php endif; ?>
+            <?php endif; ?>
+            
+            <?php for ($i = $start_page; $i <= $end_page; $i++): ?>
+                <a href="?page=<?php echo $i; ?>" 
+                   class="pagination-number <?php echo $i == $page ? 'active' : ''; ?>">
+                    <?php echo $i; ?>
+                </a>
+            <?php endfor; ?>
+            
+            <?php if ($end_page < $total_pages): ?>
+                <?php if ($end_page < $total_pages - 1): ?>
+                    <span class="pagination-dots">...</span>
+                <?php endif; ?>
+                <a href="?page=<?php echo $total_pages; ?>" class="pagination-number"><?php echo $total_pages; ?></a>
+            <?php endif; ?>
+            
+            <?php if ($page < $total_pages): ?>
+                <a href="?page=<?php echo $page + 1; ?>" class="pagination-btn">
+                    Tiếp <i class="fas fa-chevron-right"></i>
+                </a>
+            <?php endif; ?>
+        </div>
+        
+        <div class="pagination-info">
+            Trang <?php echo $page; ?> / <?php echo $total_pages; ?> 
+            (<?php echo $total_products; ?> sản phẩm)
+        </div>
+        <?php endif; ?>
     </section>
         </main>
     </div>
@@ -516,7 +579,29 @@ if (!$result) {
                                     html += i <= review.rating ? '★' : '☆';
                                 }
                                 html += '</div>';
-                                html += '<p style="color:#666;margin:0;">' + review.content + '</p>';
+                                html += '<p style="color:#666;margin:0 0 10px 0;">' + review.content + '</p>';
+                                
+                                // Hiển thị ảnh đánh giá nếu có
+                                if (review.images && review.images.length > 0) {
+                                    html += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">';
+                                    review.images.forEach(image => {
+                                        html += '<img src="' + image + '" alt="Ảnh đánh giá" style="width:80px;height:80px;object-fit:cover;border-radius:6px;cursor:pointer;" onclick="window.open(\'' + image + '\', \'_blank\')">';
+                                    });
+                                    html += '</div>';
+                                }
+                                
+                                // Hiển thị phản hồi của admin nếu có
+                                if (review.admin_reply) {
+                                    html += '<div style="background:#f0f8ff;border-left:3px solid #007bff;padding:10px;margin-top:10px;border-radius:4px;">';
+                                    html += '<div style="display:flex;align-items:center;gap:5px;margin-bottom:5px;">';
+                                    html += '<i class="fas fa-user-shield" style="color:#007bff;font-size:14px;"></i>';
+                                    html += '<strong style="color:#007bff;font-size:14px;">Phản hồi từ Shop</strong>';
+                                    html += '<span style="color:#999;font-size:12px;margin-left:auto;">' + review.admin_reply_date + '</span>';
+                                    html += '</div>';
+                                    html += '<p style="color:#555;margin:0;font-size:14px;">' + review.admin_reply + '</p>';
+                                    html += '</div>';
+                                }
+                                
                                 html += '</div>';
                             });
                             html += '</div>';

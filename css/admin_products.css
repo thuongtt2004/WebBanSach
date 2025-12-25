@@ -1,13 +1,13 @@
 /* Admin Products - Giao diện tối ưu, chuyên nghiệp, dễ nhìn */
 :root {
-    --primary-color: #5e72e4;
-    --primary-dark: #4c63d2;
-    --success-color: #2dce89;
-    --success-dark: #24a46d;
-    --danger-color: #f5365c;
-    --danger-dark: #ec0c38;
-    --info-color: #11cdef;
-    --info-dark: #0da5c0;
+    --primary-color: #333333;
+    --primary-dark: #222222;
+    --success-color: #333333;
+    --success-dark: #444444;
+    --danger-color: #dc3545;
+    --danger-dark: #c82333;
+    --info-color: #333333;
+    --info-dark: #444444;
     --light-bg: #f7fafc;
     --dark-text: #32325d;
     --border-color: #e9ecef;
@@ -84,8 +84,8 @@
 
 .add-product-btn {
     padding: 14px 28px;
-    background: linear-gradient(135deg, var(--success-color) 0%, var(--success-dark) 100%);
-    color: white;
+    background: #333333;
+    color: #EBE9E5;
     text-decoration: none;
     border-radius: 10px;
     font-weight: 600;
@@ -94,14 +94,14 @@
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    box-shadow: 0 4px 12px rgba(45, 206, 137, 0.35);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     border: none;
 }
 
 .add-product-btn:hover {
-    background: linear-gradient(135deg, var(--success-dark) 0%, var(--success-color) 100%);
+    background: #444444;
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(45, 206, 137, 0.45);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
 /* Table Container - Tối ưu trong khung */
@@ -124,8 +124,8 @@ table {
 }
 
 thead {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: #333333 !important;
+    color: white !important;
 }
 
 thead th {
@@ -136,6 +136,7 @@ thead th {
     text-transform: uppercase;
     letter-spacing: 0.8px;
     white-space: nowrap;
+    color: white !important;
 }
 
 tbody tr {
@@ -190,13 +191,13 @@ tbody td img:hover {
 }
 
 .btn-edit {
-    background: linear-gradient(135deg, var(--info-color) 0%, var(--info-dark) 100%);
-    color: white;
-    box-shadow: 0 3px 10px rgba(17, 205, 239, 0.3);
+    background: #333333;
+    color: #EBE9E5;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
 }
 
 .btn-edit:hover {
-    background: linear-gradient(135deg, var(--info-dark) 0%, var(--info-color) 100%);
+    background: #444444;
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(17, 205, 239, 0.4);
 }

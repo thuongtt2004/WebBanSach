@@ -86,6 +86,11 @@ if ($should_run) {
                 </a>
             </li>
             <li>
+                <a href="<?php echo $menu_prefix; ?>admin_categories.php" class="<?php echo $current_page == 'admin_categories.php' ? 'active' : ''; ?>">
+                    <i class="fas fa-folder"></i> Danh mục
+                </a>
+            </li>
+            <li>
                 <a href="<?php echo $menu_prefix; ?>admin_orders.php" class="<?php echo $current_page == 'admin_orders.php' ? 'active' : ''; ?>">
                     <i class="fas fa-shopping-cart"></i> Đơn hàng
                 </a>

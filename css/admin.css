@@ -34,8 +34,8 @@ th, td {
 }
 
 th {
-    background: #2c3e50;
-    color: #fff;
+    background: #333333;
+    color: #EBE9E5;
     font-weight: 500;
 }
 
@@ -51,7 +51,7 @@ tr:hover {
 .form-group label {
     display: block;
     margin-bottom: 5px;
-    color: #2c3e50;
+    color: #333333;
     font-weight: 500;
 }
 
@@ -86,33 +86,33 @@ tr:hover {
 }
 
 .btn-add {
-    background: #2ecc71;
-    color: #fff;
+    background: #333333;
+    color: #EBE9E5;
 }
 
 .btn-edit {
-    background: #3498db;
-    color: #fff;
+    background: #333333;
+    color: #EBE9E5;
 }
 
 .btn-delete {
-    background: #e74c3c;
+    background: #dc3545;
     color: #fff;
 }
 
 .btn-view {
-    background: #f1c40f;
-    color: #fff;
+    background: #333333;
+    color: #EBE9E5;
 }
 
 .btn-print {
-    background: #9b59b6;
+    background: #666666;
     color: #fff;
 }
 
 .btn-submit {
-    background: #2ecc71;
-    color: #fff;
+    background: #333333;
+    color: #EBE9E5;
     width: 100%;
     padding: 12px;
 }
@@ -155,23 +155,23 @@ tr:hover {
 }
 
 .status-pending {
-    background: #f1c40f;
+    background: #666666;
     color: #fff;
 }
 
 .status-confirmed {
-    background: #3498db;
-    color: #fff;
+    background: #333333;
+    color: #EBE9E5;
 }
 
 .status-shipping {
-    background: #9b59b6;
-    color: #fff;
+    background: #666666;
+    color: #EBE9E5;
 }
 
 .status-completed {
-    background: #2ecc71;
-    color: #fff;
+    background: #333333;
+    color: #EBE9E5;
 }
 
 .status-cancelled {
@@ -191,14 +191,14 @@ tr:hover {
     margin: 0 5px;
     border: 1px solid #ddd;
     border-radius: 4px;
-    color: #2c3e50;
+    color: #333333;
     text-decoration: none;
 }
 
 .pagination a.active {
-    background: #3498db;
-    color: #fff;
-    border-color: #3498db;
+    background: #333333;
+    color: #EBE9E5;
+    border-color: #333333;
 }
 
 /* Search Form */
@@ -217,8 +217,8 @@ tr:hover {
 
 .search-form button {
     padding: 8px 20px;
-    background: #3498db;
-    color: #fff;
+    background: #333333;
+    color: #EBE9E5;
     border: none;
     border-radius: 4px;
     cursor: pointer;

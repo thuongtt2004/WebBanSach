@@ -200,7 +200,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <select name="book_format">
                     <option value="Bìa mềm">Bìa mềm</option>
                     <option value="Bìa cứng">Bìa cứng</option>
-                    <option value="Ebook">Ebook</option>
                 </select>
             </div>
             <div class="form-group">

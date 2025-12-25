@@ -72,11 +72,38 @@ if (isset($_POST['update_product'])) {
     $sold_quantity = intval($_POST['sold_quantity']);
     $category_id = intval($_POST['category_id']);
     $description = trim($_POST['description']);
+    
+    // Xử lý upload ảnh mới nếu có
+    $image_url = null;
+    if (isset($_FILES['product_image']) && $_FILES['product_image']['error'] == 0) {
+        $target_dir = "../uploads/";
+        $file_name = basename($_FILES["product_image"]["name"]);
+        $target_file = $target_dir . $file_name;
+        $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
+        
+        // Kiểm tra file hình ảnh hợp lệ
+        $valid_extensions = array("jpg", "jpeg", "png", "gif");
+        if (in_array($imageFileType, $valid_extensions)) {
+            if (move_uploaded_file($_FILES["product_image"]["tmp_name"], $target_file)) {
+                $image_url = "uploads/" . $file_name;
+            }
+        }
+    }
 
-    $stmt = $conn->prepare("UPDATE products SET product_name = ?, author = ?, publisher = ?, publish_year = ?, isbn = ?, pages = ?, language = ?, book_format = ?, dimensions = ?, weight = ?, series = ?, price = ?, stock_quantity = ?, sold_quantity = ?, category_id = ?, description = ? WHERE product_id = ?");
+    // Cập nhật sản phẩm với hoặc không có ảnh mới
+    if ($image_url) {
+        $stmt = $conn->prepare("UPDATE products SET product_name = ?, author = ?, publisher = ?, publish_year = ?, isbn = ?, pages = ?, language = ?, book_format = ?, dimensions = ?, weight = ?, series = ?, price = ?, stock_quantity = ?, sold_quantity = ?, category_id = ?, description = ?, image_url = ? WHERE product_id = ?");
+        if ($stmt) {
+            $stmt->bind_param("sssisssssidiiidiss", $product_name, $author, $publisher, $publish_year, $isbn, $pages, $language, $book_format, $dimensions, $weight, $series, $price, $stock_quantity, $sold_quantity, $category_id, $description, $image_url, $product_id);
+        }
+    } else {
+        $stmt = $conn->prepare("UPDATE products SET product_name = ?, author = ?, publisher = ?, publish_year = ?, isbn = ?, pages = ?, language = ?, book_format = ?, dimensions = ?, weight = ?, series = ?, price = ?, stock_quantity = ?, sold_quantity = ?, category_id = ?, description = ? WHERE product_id = ?");
+        if ($stmt) {
+            $stmt->bind_param("sssisssssidiiidis", $product_name, $author, $publisher, $publish_year, $isbn, $pages, $language, $book_format, $dimensions, $weight, $series, $price, $stock_quantity, $sold_quantity, $category_id, $description, $product_id);
+        }
+    }
+    
     if ($stmt) {
-        $stmt->bind_param("sssisssssidiiidis", $product_name, $author, $publisher, $publish_year, $isbn, $pages, $language, $book_format, $dimensions, $weight, $series, $price, $stock_quantity, $sold_quantity, $category_id, $description, $product_id);
-
         if ($stmt->execute()) {
             echo "<script>alert('Cập nhật sách thành công!');</script>";
         } else {
@@ -259,8 +286,20 @@ if ($publishers_result) {
         <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
             <span class="close" onclick="closeEditModal()">&times;</span>
             <h2><i class="fas fa-edit"></i> Sửa Thông Tin Sách</h2>
-            <form id="editForm" method="POST" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <form id="editForm" method="POST" enctype="multipart/form-data" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                 <input type="hidden" name="product_id" id="edit_product_id">
+                
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label>Ảnh bìa hiện tại</label>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <img id="edit_current_image" src="" alt="Ảnh bìa" style="width: 100px; height: 150px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px;">
+                        <div style="flex: 1;">
+                            <label style="display: block; margin-bottom: 5px;">Thay đổi ảnh bìa</label>
+                            <input type="file" name="product_image" id="edit_product_image" accept="image/*" style="border: 1px solid #ddd; padding: 8px; border-radius: 4px; width: 100%;">
+                            <small style="color: #666; display: block; margin-top: 5px;">Chọn file để thay đổi ảnh bìa (JPG, PNG, GIF)</small>
+                        </div>
+                    </div>
+                </div>
                 
                 <div style="grid-column: 1 / -1; font-weight: 600; color: #007bff; border-bottom: 2px solid #007bff; padding-bottom: 5px; margin-top: 10px;">
                     <i class="fas fa-info-circle"></i> Thông tin cơ bản
@@ -361,7 +400,6 @@ if ($publishers_result) {
                     <select name="book_format" id="edit_book_format">
                         <option value="Bìa mềm">Bìa mềm</option>
                         <option value="Bìa cứng">Bìa cứng</option>
-                        <option value="Ebook">Ebook</option>
                     </select>
                 </div>
                 
@@ -428,6 +466,14 @@ if ($publishers_result) {
             // Điền thông tin vào form
             document.getElementById('edit_product_id').value = product.product_id;
             document.getElementById('edit_product_name').value = product.product_name;
+            
+            // Hiển thị ảnh hiện tại
+            const currentImage = document.getElementById('edit_current_image');
+            if (product.image_url) {
+                currentImage.src = '../' + product.image_url;
+            } else {
+                currentImage.src = '../uploads/default-book.jpg';
+            }
             document.getElementById('edit_author').value = product.author || '';
             document.getElementById('edit_publisher').value = product.publisher || '';
             document.getElementById('edit_publish_year').value = product.publish_year || '';

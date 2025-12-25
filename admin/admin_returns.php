@@ -9,14 +9,26 @@ if (!isset($_SESSION['admin_id'])) {
     exit();
 }
 
-// Xử lý duyệt/từ chối yêu cầu trả hàng
+// Xử lý duyệt/từ chối/hoàn tất/hủy yêu cầu trả hàng
 if (isset($_POST['process_return'])) {
     $order_id = intval($_POST['order_id']);
-    $action = $_POST['action']; // 'approve' hoặc 'reject'
+    $action = $_POST['action']; // 'approve', 'reject', 'complete', 'cancel'
     $admin_note = trim($_POST['admin_note'] ?? '');
     
     if ($action === 'approve') {
-        // Duyệt trả hàng - hoàn lại tồn kho
+        // Duyệt trả hàng - CHỈ duyệt, CHƯA hoàn kho
+        $update_sql = "UPDATE orders SET return_status = 'Đã duyệt' WHERE order_id = ?";
+        $update_stmt = $conn->prepare($update_sql);
+        $update_stmt->bind_param("i", $order_id);
+        
+        if ($update_stmt->execute()) {
+            $success_message = "Đã duyệt yêu cầu trả hàng! Vui lòng xác nhận đã nhận hàng để hoàn tồn kho.";
+        } else {
+            $error_message = "Không thể cập nhật trạng thái!";
+        }
+        
+    } elseif ($action === 'complete') {
+        // Hoàn tất trả hàng - Cập nhật kho và đổi trạng thái
         if (method_exists($conn, 'begin_transaction')) {
             $conn->begin_transaction();
         }
@@ -44,8 +56,8 @@ if (isset($_POST['process_return'])) {
                     }
                 }
                 
-                // Cập nhật trạng thái yêu cầu
-                $update_sql = "UPDATE orders SET return_status = 'Đã duyệt', order_status = 'Đã trả hàng' WHERE order_id = ?";
+                // Cập nhật trạng thái đã trả hàng
+                $update_sql = "UPDATE orders SET return_status = 'Đã trả hàng', order_status = 'Đã trả hàng', return_completed_date = NOW() WHERE order_id = ?";
                 $update_stmt = $conn->prepare($update_sql);
                 if ($update_stmt) {
                     $update_stmt->bind_param("i", $order_id);
@@ -56,7 +68,7 @@ if (isset($_POST['process_return'])) {
             if (method_exists($conn, 'commit')) {
                 $conn->commit();
             }
-            $success_message = "Đã duyệt yêu cầu trả hàng và hoàn lại tồn kho!";
+            $success_message = "Đã hoàn tất trả hàng và cập nhật tồn kho thành công!";
         } catch (Exception $e) {
             if (method_exists($conn, 'rollback')) {
                 $conn->rollback();
@@ -66,7 +78,7 @@ if (isset($_POST['process_return'])) {
         
     } elseif ($action === 'reject') {
         // Từ chối trả hàng
-        $update_sql = "UPDATE orders SET return_status = 'Từ chối' WHERE order_id = ?";
+        $update_sql = "UPDATE orders SET return_status = 'Từ chối', return_rejected_date = NOW() WHERE order_id = ?";
         $update_stmt = $conn->prepare($update_sql);
         $update_stmt->bind_param("i", $order_id);
         
@@ -74,6 +86,18 @@ if (isset($_POST['process_return'])) {
             $success_message = "Đã từ chối yêu cầu trả hàng!";
         } else {
             $error_message = "Không thể cập nhật trạng thái!";
+        }
+        
+    } elseif ($action === 'cancel') {
+        // Hủy yêu cầu trả hàng (khách hàng hoặc admin hủy)
+        $update_sql = "UPDATE orders SET return_status = 'Đã hủy yêu cầu', return_request = 0, order_status = 'Hoàn thành', return_cancelled_date = NOW() WHERE order_id = ?";
+        $update_stmt = $conn->prepare($update_sql);
+        $update_stmt->bind_param("i", $order_id);
+        
+        if ($update_stmt->execute()) {
+            $success_message = "Đã hủy yêu cầu trả hàng!";
+        } else {
+            $error_message = "Không thể hủy yêu cầu!";
         }
     }
 }
@@ -139,6 +163,16 @@ $return_result = $conn->query($return_sql);
         .status-rejected {
             background: #f8d7da;
             color: #721c24;
+        }
+        
+        .status-completed {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-cancelled {
+            background: #e2e3e5;
+            color: #383d41;
         }
         
         .return-actions {
@@ -221,6 +255,8 @@ $return_result = $conn->query($return_sql);
                         case 'Chờ duyệt': $status_class = 'pending'; break;
                         case 'Đã duyệt': $status_class = 'approved'; break;
                         case 'Từ chối': $status_class = 'rejected'; break;
+                        case 'Đã trả hàng': $status_class = 'completed'; break;
+                        case 'Đã hủy yêu cầu': $status_class = 'cancelled'; break;
                     }
                 ?>
                 <div class="return-card">
@@ -262,8 +298,9 @@ $return_result = $conn->query($return_sql);
                     </div>
                     
                     <?php if ($return_status === 'Chờ duyệt' || $return_status === null): ?>
+                    <!-- Trạng thái: Chờ duyệt - Hiển thị nút Duyệt/Từ chối -->
                     <div class="return-actions">
-                        <form method="POST" style="display:inline;" onsubmit="return confirm('Xác nhận duyệt yêu cầu trả hàng? Tồn kho sẽ được hoàn lại.')">
+                        <form method="POST" style="display:inline;" onsubmit="return confirm('Xác nhận duyệt yêu cầu trả hàng?')">
                             <input type="hidden" name="order_id" value="<?php echo $request['order_id']; ?>">
                             <input type="hidden" name="action" value="approve">
                             <button type="submit" name="process_return" class="btn btn-approve">
@@ -278,6 +315,40 @@ $return_result = $conn->query($return_sql);
                                 <i class="fas fa-times"></i> Từ chối
                             </button>
                         </form>
+                        
+                        <form method="POST" style="display:inline;" onsubmit="return confirm('Hủy yêu cầu trả hàng này?')">
+                            <input type="hidden" name="order_id" value="<?php echo $request['order_id']; ?>">
+                            <input type="hidden" name="action" value="cancel">
+                            <button type="submit" name="process_return" class="btn" style="background:#6c757d;color:white;">
+                                <i class="fas fa-ban"></i> Hủy yêu cầu
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <?php elseif ($return_status === 'Đã duyệt'): ?>
+                    <!-- Trạng thái: Đã duyệt - Hiển thị nút Đã nhận hàng trả/Hủy -->
+                    <div class="return-actions">
+                        <form method="POST" style="display:inline;" onsubmit="return confirm('Xác nhận đã nhận được hàng trả? Số lượng sản phẩm sẽ được cập nhật vào kho.')">
+                            <input type="hidden" name="order_id" value="<?php echo $request['order_id']; ?>">
+                            <input type="hidden" name="action" value="complete">
+                            <button type="submit" name="process_return" class="btn" style="background:#17a2b8;color:white;">
+                                <i class="fas fa-box-open"></i> Đã nhận hàng trả
+                            </button>
+                        </form>
+                        
+                        <form method="POST" style="display:inline;" onsubmit="return confirm('Hủy yêu cầu trả hàng này?')">
+                            <input type="hidden" name="order_id" value="<?php echo $request['order_id']; ?>">
+                            <input type="hidden" name="action" value="cancel">
+                            <button type="submit" name="process_return" class="btn" style="background:#6c757d;color:white;">
+                                <i class="fas fa-ban"></i> Hủy yêu cầu
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <?php elseif (in_array($return_status, ['Đã trả hàng', 'Từ chối', 'Đã hủy yêu cầu'])): ?>
+                    <!-- Trạng thái: Đã xử lý xong - Khóa lại, không cho thao tác -->
+                    <div style="padding:10px;background:#f8f9fa;border-radius:8px;text-align:center;color:#666;">
+                        <i class="fas fa-lock"></i> Yêu cầu đã được xử lý xong
                     </div>
                     <?php endif; ?>
                 </div>

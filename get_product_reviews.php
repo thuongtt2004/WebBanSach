@@ -29,6 +29,8 @@ try {
                         r.content,
                         r.images,
                         r.review_date,
+                        r.admin_reply,
+                        r.admin_reply_date,
                         u.full_name as user_name
                     FROM reviews r
                     JOIN users u ON r.user_id = u.user_id
@@ -55,7 +57,9 @@ try {
             'content' => htmlspecialchars($row['content']),
             'images' => $images,
             'user_name' => htmlspecialchars($row['user_name']),
-            'created_at' => date('d/m/Y H:i', strtotime($row['review_date']))
+            'created_at' => date('d/m/Y H:i', strtotime($row['review_date'])),
+            'admin_reply' => $row['admin_reply'] ? htmlspecialchars($row['admin_reply']) : null,
+            'admin_reply_date' => $row['admin_reply_date'] ? date('d/m/Y H:i', strtotime($row['admin_reply_date'])) : null
         ];
     }
     

@@ -198,7 +198,7 @@ $categories_result = $conn->query($categories_sql);
         }
         
         .breadcrumb a {
-            color: #007bff;
+            color: #333333;
             text-decoration: none;
         }
         
@@ -259,8 +259,8 @@ $categories_result = $conn->query($categories_sql);
         
         .search-form button {
             padding: 10px 15px;
-            background: #007bff;
-            color: white;
+            background: #333333;
+            color: #EBE9E5;
             border: none;
             border-radius: 8px;
             cursor: pointer;
@@ -287,8 +287,8 @@ $categories_result = $conn->query($categories_sql);
         
         .category-list a:hover,
         .category-list a.active {
-            background: #667eea;
-            color: white;
+            background: #333333;
+            color: #EBE9E5;
         }
         
         /* Main Content */
@@ -319,8 +319,8 @@ $categories_result = $conn->query($categories_sql);
         }
         
         .filter-tag {
-            background: #e3f2fd;
-            color: #1976d2;
+            background: #EBE9E5;
+            color: #333333;
             padding: 6px 12px;
             border-radius: 20px;
             font-size: 14px;
@@ -330,7 +330,7 @@ $categories_result = $conn->query($categories_sql);
         }
         
         .filter-tag a {
-            color: #1976d2;
+            color: #333333;
             text-decoration: none;
         }
         
@@ -425,7 +425,7 @@ $categories_result = $conn->query($categories_sql);
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            color: #667eea;
+            color: #333333;
             text-decoration: none;
             font-weight: 600;
             transition: gap 0.3s;
