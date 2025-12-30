@@ -4,7 +4,7 @@
 
 define('GOOGLE_CLIENT_ID', 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com');
 define('GOOGLE_CLIENT_SECRET', 'YOUR_GOOGLE_CLIENT_SECRET');
-define('GOOGLE_REDIRECT_URI', 'http://localhost/TTHUONG/google_callback.php');
+define('GOOGLE_REDIRECT_URI', 'http://localhost/BanSach/src/google_callback.php');
 
 // Hoặc sử dụng cho production
 // define('GOOGLE_REDIRECT_URI', 'https://yourdomain.com/google_callback.php');
@@ -18,7 +18,7 @@ define('GOOGLE_REDIRECT_URI', 'http://localhost/TTHUONG/google_callback.php');
  * 4. Click "Create Credentials" > "OAuth 2.0 Client IDs"
  * 5. Chọn "Web application"
  * 6. Thêm Authorized redirect URIs:
- *    - http://localhost/TTHUONG/google_callback.php (cho development)
+ *    - http://localhost/BanSach/src/google_callback.php (cho development)
  *    - https://yourdomain.com/google_callback.php (cho production)
  * 7. Copy Client ID và Client Secret vào file này
  * 8. Enable Google+ API trong API Library
