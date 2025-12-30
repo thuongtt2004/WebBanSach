@@ -1,0 +1,453 @@
+/* Admin Products - Giao diện tối ưu, chuyên nghiệp, dễ nhìn */
+:root {
+    --primary-color: #333333;
+    --primary-dark: #222222;
+    --success-color: #333333;
+    --success-dark: #444444;
+    --danger-color: #dc3545;
+    --danger-dark: #c82333;
+    --info-color: #333333;
+    --info-dark: #444444;
+    --light-bg: #f7fafc;
+    --dark-text: #32325d;
+    --border-color: #e9ecef;
+    --shadow: 0 0 20px rgba(0,0,0,0.08);
+    --shadow-lg: 0 5px 25px rgba(0,0,0,0.12);
+}
+
+.container {
+    max-width: 1400px;
+    margin: 20px auto;
+    padding: 30px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: var(--shadow);
+}
+
+.container h1 {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--dark-text);
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 3px solid var(--primary-color);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.button-container {
+    margin-bottom: 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+/* Search Box */
+.search-box {
+    position: relative;
+    flex: 1;
+    max-width: 500px;
+    min-width: 250px;
+}
+
+.search-box i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #8898aa;
+    font-size: 16px;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 12px 15px 12px 45px;
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(94, 114, 228, 0.1);
+}
+
+.search-box input::placeholder {
+    color: #8898aa;
+}
+
+.add-product-btn {
+    padding: 14px 28px;
+    background: #333333;
+    color: #EBE9E5;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    border: none;
+}
+
+.add-product-btn:hover {
+    background: #444444;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Table Container - Tối ưu trong khung */
+.table-wrapper {
+    background: white;
+    border-radius: 12px;
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+}
+
+/* Table Styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    min-width: 1100px;
+}
+
+thead {
+    background: #333333 !important;
+    color: white !important;
+}
+
+thead th {
+    padding: 18px 15px;
+    font-weight: 600;
+    text-align: left;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    white-space: nowrap;
+    color: white !important;
+}
+
+tbody tr {
+    border-bottom: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+}
+
+tbody tr:hover {
+    background: linear-gradient(90deg, #f8f9fa 0%, #ffffff 100%);
+    box-shadow: inset 3px 0 0 var(--primary-color);
+}
+
+tbody tr:last-child8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    transition: all 0.3s ease;
+    border: 2px solid var(--border-color);
+}
+
+tbody td img:hover {
+    transform: scale(1.8);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    z-index: 100;
+    position: relative;
+    border-color: var(--primary-color);
+}
+
+/* Action Buttons Container */
+.actions-cell {
+    white-space: nowrap;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* Button Styles - Màu mới dễ nhìn */
+.btn-edit, .btn-delete {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.btn-edit {
+    background: #333333;
+    color: #EBE9E5;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.btn-edit:hover {
+    background: #444444;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(17, 205, 239, 0.4);
+}
+
+.btn-delete {
+    background: linear-gradient(135deg, var(--danger-color) 0%, var(--danger-dark) 100%);
+    color: white;
+    box-shadow: 0 3px 10px rgba(245, 54, 92, 0.3);
+}
+
+.btn-delete:hover {
+    background: linear-gradient(135deg, var(--danger-dark) 0%, var(--danger-color) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(245, 54, 92, 0.4
+    background: #138496;
+    transform: scale(1.05);
+}
+
+.btn-delete {
+    background: var(--danger-color);
+    color: white;
+}
+
+.btn-delete:hover {
+    background: #c82333;
+    transform: scale(1.05);
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    animation: slideDown 0.3s ease;
+    position: relative;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    color: var(--primary-color);
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.close {
+    position: absolute;
+    right: 15px;
+    top: 15px;
+    font-size: 32px;
+    font-weight: 700;
+    color: #aaa;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.close:hover {
+    color: var(--danger-color);
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: var(--dark-text);
+    font-size: 14px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+/* Responsive Mobile */
+@media (max-width: 768px) {
+    .container {
+        padding: 20px 15px;
+     search-box {
+        max-width: 100%;
+        order: 2;
+    }
+    
+    .add-product-btn {
+        width: 100%;
+        justify-content: center;
+        order: 1;
+    }
+    
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    table {
+        min-width: 900px;
+        font-size: 13px;
+    }
+    
+    thead th {
+        padding: 12px 10px;
+        font-size: 12px;
+    }
+    
+    tbody td {
+        padding: 10px 8px;
+    }
+    
+    /* Mobile buttons - chỉ hiển thị icon */
+    .btn-edit, .btn-delete {
+        padding: 10px 12px;
+        font-size: 12px;
+        min-width: 40px;
+        justify-content: center;
+    }
+    
+    .btn-text {
+        display: none;
+    }
+    
+    .action-buttons {
+        gap: 5px;
+        justify-content: center;
+    }
+    
+    .actions-cell {
+        text-align: center
+        padding: 12px 10px;
+        font-size: 12px;
+    }
+    
+    tbody td {
+        padding: 10px;
+    }
+    
+    .btn-edit, .btn-delete {
+        padding: 8px 14px;
+        font-size: 12px;
+        margin-bottom: 5px;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        margin: 10px;
+        padding: 15px 10px;
+    }
+    
+    .container h1 {
+        font-size: 20px;
+    }
+    
+    table {
+        min-width: 700px;
+    }
+}
+
+/* Badge styles */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.status-active {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    color: #155724;
+}
+
+.status-inactive {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    color: #721c24;
+}
+
+/* Scrollbar styling */
+.table-wrapper::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}

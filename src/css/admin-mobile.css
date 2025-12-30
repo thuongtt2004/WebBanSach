@@ -1,0 +1,470 @@
+/* ===================================
+   ADMIN MOBILE OPTIMIZATION CSS
+   File tối ưu riêng cho admin panel trên mobile
+   =================================== */
+
+/* === ADMIN TABLE MOBILE === */
+@media (max-width: 768px) {
+    /* Wrapper để scroll tables */
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 15px 0;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    /* Table actions buttons stack */
+    .table-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .table-actions a,
+    .table-actions button {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+    }
+}
+
+/* === ADMIN FORMS MOBILE === */
+@media (max-width: 768px) {
+    .admin-form {
+        padding: 15px;
+    }
+    
+    .form-row {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .form-col-2 {
+        width: 100%;
+    }
+    
+    /* File upload buttons */
+    input[type="file"] {
+        padding: 12px;
+        font-size: 14px;
+    }
+    
+    /* Image preview in forms */
+    .image-preview {
+        max-width: 100%;
+        height: auto;
+        margin: 10px 0;
+    }
+}
+
+/* === ADMIN DASHBOARD STATS === */
+@media (max-width: 768px) {
+    .dashboard-stats,
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+        gap: 15px;
+    }
+    
+    .stat-card {
+        padding: 20px 15px;
+    }
+    
+    .stat-card h3 {
+        font-size: 1rem;
+    }
+    
+    .stat-card p {
+        font-size: 28px;
+    }
+}
+
+/* === ADMIN FILTERS & SEARCH === */
+@media (max-width: 768px) {
+    .filter-container,
+    .search-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .filter-group,
+    .search-group {
+        width: 100%;
+    }
+    
+    .filter-group select,
+    .search-group input {
+        width: 100%;
+    }
+    
+    .date-range {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .date-range input {
+        width: 100%;
+    }
+}
+
+/* === ADMIN MODALS === */
+@media (max-width: 768px) {
+    .admin-modal {
+        padding: 10px;
+    }
+    
+    .admin-modal-content {
+        width: 95%;
+        max-height: 90vh;
+        overflow-y: auto;
+        margin: 5vh auto;
+        padding: 20px 15px;
+    }
+    
+    .modal-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .modal-close {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+}
+
+/* === ADMIN CHARTS === */
+@media (max-width: 768px) {
+    .chart-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    canvas {
+        max-width: 100%;
+        height: auto !important;
+    }
+}
+
+/* === ADMIN TABS === */
+@media (max-width: 768px) {
+    .admin-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap;
+        scrollbar-width: none;
+    }
+    
+    .admin-tabs::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .admin-tab {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+    }
+}
+
+/* === ADMIN ORDER DETAILS === */
+@media (max-width: 768px) {
+    .order-detail-container {
+        padding: 15px;
+    }
+    
+    .order-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .order-items {
+        overflow-x: auto;
+    }
+    
+    .order-summary {
+        margin-top: 20px;
+    }
+}
+
+/* === ADMIN PRODUCT MANAGEMENT === */
+@media (max-width: 768px) {
+    .product-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .product-card {
+        flex-direction: column;
+    }
+    
+    .product-image {
+        width: 100%;
+        max-width: 200px;
+        margin: 0 auto;
+    }
+    
+    .product-info {
+        width: 100%;
+        padding: 15px;
+    }
+}
+
+/* === ADMIN USER MANAGEMENT === */
+@media (max-width: 768px) {
+    .user-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .user-avatar {
+        margin: 0 auto;
+    }
+    
+    .user-actions {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+}
+
+/* === ADMIN REVENUE CHARTS === */
+@media (max-width: 768px) {
+    .revenue-summary {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .revenue-card {
+        padding: 15px;
+    }
+    
+    .revenue-chart {
+        height: 300px !important;
+    }
+}
+
+/* === ADMIN BLOG MANAGEMENT === */
+@media (max-width: 768px) {
+    .blog-editor {
+        padding: 15px;
+    }
+    
+    .editor-toolbar {
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+    
+    .editor-toolbar button {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+}
+
+/* === ADMIN CHAT === */
+@media (max-width: 768px) {
+    .admin-chat-container {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .chat-users-list {
+        width: 100%;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    
+    .chat-messages {
+        height: 400px;
+    }
+}
+
+/* === ADMIN PROMOTIONS === */
+@media (max-width: 768px) {
+    .promotion-card {
+        padding: 15px;
+    }
+    
+    .promotion-details {
+        flex-direction: column;
+    }
+    
+    .promotion-products {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* === TOUCH FRIENDLY BUTTONS === */
+@media (max-width: 768px) {
+    .btn,
+    button,
+    .action-btn,
+    .admin-menu a {
+        min-height: 44px;
+        min-width: 44px;
+        touch-action: manipulation;
+    }
+    
+    /* Spacing for button groups */
+    .button-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+    
+    .button-group button,
+    .button-group a {
+        width: 100%;
+    }
+}
+
+/* === ADMIN PAGINATION === */
+@media (max-width: 768px) {
+    .pagination {
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+    
+    .pagination a,
+    .pagination span {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+}
+
+/* === ADMIN ALERTS === */
+@media (max-width: 768px) {
+    .admin-alert {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        z-index: 10000;
+        padding: 12px;
+        font-size: 0.9rem;
+    }
+}
+
+/* === ADMIN SIDEBAR (if exists) === */
+@media (max-width: 768px) {
+    .admin-sidebar {
+        position: fixed;
+        left: -100%;
+        top: 0;
+        width: 80%;
+        max-width: 300px;
+        height: 100vh;
+        transition: left 0.3s ease;
+        z-index: 9999;
+    }
+    
+    .admin-sidebar.active {
+        left: 0;
+    }
+    
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 9998;
+    }
+    
+    .sidebar-overlay.active {
+        display: block;
+    }
+    
+    .sidebar-toggle {
+        display: block;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: #667eea;
+        color: white;
+        border: none;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 999;
+    }
+}
+
+/* === ADMIN DROPDOWN MENUS === */
+@media (max-width: 768px) {
+    .dropdown-menu {
+        position: fixed;
+        left: 10px;
+        right: 10px;
+        width: auto;
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+}
+
+/* === LANDSCAPE MODE === */
+@media (max-width: 768px) and (orientation: landscape) {
+    .admin-modal-content {
+        max-height: 85vh;
+    }
+    
+    .chat-messages {
+        height: 300px;
+    }
+}
+
+/* === SMALL MOBILE OPTIMIZATIONS === */
+@media (max-width: 480px) {
+    .admin-content {
+        padding: 10px;
+    }
+    
+    h1, h2, h3 {
+        font-size: 1.2rem;
+    }
+    
+    .card,
+    .panel {
+        padding: 12px;
+        margin-bottom: 12px;
+    }
+    
+    /* Stack all layouts */
+    .flex-row {
+        flex-direction: column !important;
+    }
+    
+    /* Reduce spacing */
+    .mb-20 { margin-bottom: 15px !important; }
+    .mt-20 { margin-top: 15px !important; }
+    .p-20 { padding: 15px !important; }
+}
+
+/* === PRINT STYLES === */
+@media print {
+    .admin-header,
+    .admin-nav,
+    .admin-menu,
+    .btn,
+    button,
+    .action-btn,
+    .no-print {
+        display: none !important;
+    }
+    
+    .admin-content {
+        padding: 0;
+    }
+    
+    table {
+        page-break-inside: auto;
+    }
+    
+    tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+    }
+}

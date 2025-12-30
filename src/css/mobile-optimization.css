@@ -1,0 +1,387 @@
+/* ===================================
+   MOBILE OPTIMIZATION CSS
+   File này chứa tất cả CSS tối ưu cho mobile
+   Thêm vào tất cả các trang: <link rel="stylesheet" href="css/mobile-optimization.css">
+   =================================== */
+
+/* === GLOBAL MOBILE STYLES === */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* === TOUCH-FRIENDLY BUTTONS === */
+button,
+.btn,
+a.button {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+}
+
+/* === FORM INPUTS === */
+input,
+textarea,
+select {
+    font-size: 16px !important; /* Tránh zoom khi focus trên iOS */
+}
+
+@media (max-width: 768px) {
+    input,
+    textarea,
+    select {
+        width: 100%;
+        padding: 12px;
+    }
+}
+
+/* === TABLES RESPONSIVE === */
+@media (max-width: 768px) {
+    table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .table-responsive {
+        width: 100%;
+        margin-bottom: 15px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* === MODAL RESPONSIVE === */
+@media (max-width: 768px) {
+    .modal {
+        padding: 10px;
+    }
+    
+    .modal-content {
+        width: 95% !important;
+        max-width: none !important;
+        margin: 5% auto !important;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding: 15px;
+    }
+}
+
+/* === CARDS & GRID === */
+@media (max-width: 768px) {
+    .card,
+    .box,
+    .panel {
+        margin-bottom: 15px;
+    }
+    
+    .grid-2,
+    .grid-3,
+    .grid-4 {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* === NAVIGATION === */
+@media (max-width: 768px) {
+    nav ul {
+        flex-wrap: wrap;
+    }
+    
+    nav li {
+        flex: 0 0 auto;
+    }
+}
+
+/* === IMAGES & MEDIA === */
+@media (max-width: 768px) {
+    img,
+    video,
+    iframe {
+        max-width: 100%;
+        height: auto;
+    }
+    
+    /* Banner/Slideshow tối ưu */
+    .slideshow-container {
+        margin: 0 10px 25px 10px !important;
+    }
+    
+    .mySlides {
+        height: 280px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .slideshow-container {
+        margin: 0 10px 20px 10px !important;
+    }
+    
+    .mySlides {
+        height: 220px !important;
+    }
+    
+    .mySlides img {
+        object-fit: cover !important;
+        object-position: center !important;
+    }
+}
+
+/* === SPACING === */
+@media (max-width: 768px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    section {
+        padding: 30px 15px;
+    }
+}
+
+/* === TEXT === */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 24px;
+    }
+    
+    h2 {
+        font-size: 20px;
+    }
+    
+    h3 {
+        font-size: 18px;
+    }
+    
+    p {
+        font-size: 14px;
+        line-height: 1.6;
+    }
+}
+
+/* === CART PAGE === */
+@media (max-width: 768px) {
+    .cart-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .cart-item-image {
+        width: 100%;
+        max-width: 200px;
+        margin: 0 auto 10px;
+    }
+    
+    .cart-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .cart-actions button {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}
+
+/* === PRODUCT LISTING === */
+@media (max-width: 768px) {
+    .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+}
+
+/* === CHECKOUT FORM === */
+@media (max-width: 768px) {
+    .checkout-form {
+        padding: 15px;
+    }
+    
+    .form-row {
+        flex-direction: column;
+    }
+    
+    .form-group {
+        width: 100%;
+        margin-bottom: 15px;
+    }
+}
+
+/* === PROFILE PAGE === */
+@media (max-width: 768px) {
+    .profile-sidebar {
+        position: static;
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    
+    .profile-content {
+        width: 100%;
+    }
+}
+
+/* === ORDERS PAGE === */
+@media (max-width: 768px) {
+    .order-item {
+        padding: 15px;
+    }
+    
+    .order-details {
+        flex-direction: column;
+    }
+    
+    .order-status {
+        margin-top: 10px;
+    }
+}
+
+/* === BLOG === */
+@media (max-width: 768px) {
+    .blog-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .blog-post {
+        margin-bottom: 20px;
+    }
+}
+
+/* === CONTACT FORM === */
+@media (max-width: 768px) {
+    .contact-form {
+        padding: 15px;
+    }
+    
+    .contact-info {
+        margin-bottom: 20px;
+    }
+}
+
+/* === ADMIN PANEL === */
+@media (max-width: 768px) {
+    .admin-sidebar {
+        position: static;
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    
+    .admin-content {
+        width: 100%;
+        padding: 15px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* === ALERTS & NOTIFICATIONS === */
+@media (max-width: 768px) {
+    .alert,
+    .notification {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        width: auto;
+        font-size: 14px;
+        padding: 12px;
+    }
+}
+
+/* === LOADING SPINNER === */
+.loading-spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #333;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* === SCROLL BEHAVIOR === */
+html {
+    scroll-behavior: smooth;
+}
+
+/* === HIDE ELEMENTS ON MOBILE === */
+@media (max-width: 768px) {
+    .hide-mobile {
+        display: none !important;
+    }
+    
+    .show-mobile {
+        display: block !important;
+    }
+}
+
+/* === LANDSCAPE ORIENTATION === */
+@media (max-width: 768px) and (orientation: landscape) {
+    .modal-content {
+        max-height: 85vh;
+    }
+    
+    .header-top {
+        padding: 0.5rem 1rem;
+    }
+}
+
+/* === PRINT STYLES === */
+@media print {
+    .no-print,
+    header,
+    footer,
+    nav,
+    .sidebar,
+    button {
+        display: none !important;
+    }
+}
+
+/* === ACCESSIBILITY === */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* === DARK MODE SUPPORT (optional) === */
+@media (prefers-color-scheme: dark) {
+    /* Uncomment if you want to add dark mode support
+    body {
+        background-color: #1a1a1a;
+        color: #ffffff;
+    }
+    */
+}
