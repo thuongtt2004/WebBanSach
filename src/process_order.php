@@ -5,6 +5,7 @@ ini_set('display_errors', 0);
 
 session_start();
 require_once 'config/connect.php';
+require_once 'includes/email_helper.php';
 
 header('Content-Type: application/json');
 
@@ -143,9 +144,32 @@ try {
     // Commit transaction
     $conn->commit();
 
+    // Lấy thông tin sản phẩm cho email
+    $email_items = [];
+    foreach ($items as $item) {
+        $email_items[] = [
+            'product_name' => $item['product_name'],
+            'quantity' => $item['quantity'],
+            'price' => $item['price']
+        ];
+    }
+    
+    // Gửi email xác nhận đơn hàng
+    $email_sent = send_order_confirmation_email(
+        $email,
+        $full_name,
+        $order_id,
+        $calculated_total,
+        $payment_method,
+        $email_items
+    );
+
     $message = 'Đặt hàng thành công';
+    if ($email_sent) {
+        $message .= '. Email xác nhận đã được gửi đến ' . $email;
+    }
     if ($payment_method === 'bank_transfer') {
-        $message .= '! Vui lòng chuyển khoản theo thông tin đã cung cấp. Đơn hàng sẽ được xử lý sau khi nhận được thanh toán.';
+        $message .= '. Vui lòng chuyển khoản theo thông tin đã cung cấp. Đơn hàng sẽ được xử lý sau khi nhận được thanh toán.';
     }
 
     echo json_encode([

@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../config/connect.php';
+require_once '../includes/email_helper.php';
 
 // Kiểm tra đăng nhập admin
 if (!isset($_SESSION['admin_id'])) {
@@ -103,6 +104,33 @@ if(isset($_POST['order_id']) && isset($_POST['status'])) {
         $stmt->bind_param("si", $new_status, $order_id);
         
         if($stmt->execute()) {
+            // Gửi email thông báo nếu trạng thái là "Đã giao"
+            if ($new_status === 'Đã giao') {
+                // Lấy thông tin đơn hàng và khách hàng
+                $order_info_sql = "SELECT email, full_name, total_amount, created_at FROM orders WHERE order_id = ?";
+                $order_info_stmt = $conn->prepare($order_info_sql);
+                $order_info_stmt->bind_param("i", $order_id);
+                $order_info_stmt->execute();
+                $order_info_result = $order_info_stmt->get_result();
+                
+                if ($order_info = $order_info_result->fetch_assoc()) {
+                    // Gửi email thông báo
+                    $email_sent = send_order_delivered_email(
+                        $order_info['email'],
+                        $order_info['full_name'],
+                        $order_id,
+                        $order_info['total_amount'],
+                        $order_info['created_at']
+                    );
+                    
+                    if ($email_sent) {
+                        $message .= ' Email thông báo đã được gửi đến khách hàng.';
+                    } else {
+                        $message .= ' Tuy nhiên không thể gửi email thông báo đến khách hàng.';
+                    }
+                }
+            }
+            
             echo "<script>alert('$message'); window.location.href='admin_orders.php';</script>";
         } else {
             echo "<script>alert('Lỗi khi cập nhật: " . $conn->error . "');</script>";
