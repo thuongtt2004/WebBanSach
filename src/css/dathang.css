@@ -65,11 +65,11 @@
 .quantity-controls {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 10px;
     margin-top: 10px;
 }
 
-.quantity-btn {
+.quantity-controls .qty-btn {
     background: #EBE9E5;
     border: 1px solid #333;
     padding: 8px 12px;
@@ -77,11 +77,32 @@
     cursor: pointer;
     transition: all 0.3s ease;
     font-size: 14px;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.quantity-btn:hover {
+.quantity-controls .qty-btn:hover {
     background: #333;
     color: #EBE9E5;
+}
+
+.quantity-controls input[type="number"] {
+    width: 60px;
+    text-align: center;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.quantity-controls .stock-info {
+    color: #666;
+    font-size: 13px;
+    margin-left: 10px;
 }
 
 .quantity-display {

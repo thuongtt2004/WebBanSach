@@ -124,7 +124,7 @@ if ($result->num_rows > 0) {
     $random_password = password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT);
     
     // Thêm người dùng mới
-    $insert_stmt = $conn->prepare("INSERT INTO users (username, email, password, full_name, google_id, google_picture, status, created_at) VALUES (?, ?, ?, ?, ?, ?, 1, NOW())");
+    $insert_stmt = $conn->prepare("INSERT INTO users (username, email, password, full_name, google_id, google_picture, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())");
     $insert_stmt->bind_param("ssssss", $username, $email, $random_password, $full_name, $google_id, $picture);
     
     if ($insert_stmt->execute()) {

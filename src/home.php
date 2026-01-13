@@ -1,6 +1,8 @@
 <?php
 require_once 'config/connect.php';
-require_once 'header.php';
+require_once 'session_init.php';
+
+/** @var mysqli $conn */
 
 // Lấy flash sale đang hoạt động
 $now = date('Y-m-d H:i:s');
@@ -22,7 +24,7 @@ $promotions_query = "SELECT * FROM promotions
                      LIMIT 3";
 $promotions_result = $conn->query($promotions_query);
 
-// Lấy 4 sản phẩm mới nhất với rating
+// Lấy 4 sản phẩm mới nhất với rating và khuyến mãi
 $sql = "SELECT p.*, c.category_name,
         COALESCE(AVG(r.rating), 0) as average_rating,
         COUNT(r.review_id) as review_count
@@ -32,6 +34,68 @@ $sql = "SELECT p.*, c.category_name,
         GROUP BY p.product_id
         ORDER BY p.product_id DESC 
         LIMIT 5";
+$result = $conn->query($sql);
+
+// Function để tính giá sau khuyến mãi
+function getDiscountedPrice($conn, $product_id, $original_price, $category_id) {
+    $now = date('Y-m-d H:i:s');
+    $discount_info = ['price' => $original_price, 'has_discount' => false, 'discount_percent' => 0, 'promotion_name' => ''];
+    
+    // Kiểm tra flash sale
+    $flash_query = "SELECT * FROM promotions WHERE promotion_type='flash_sale' AND status='active' AND '$now' BETWEEN start_date AND end_date ORDER BY discount_value DESC LIMIT 1";
+    $flash_result = $conn->query($flash_query);
+    if ($flash_result && $flash_result->num_rows > 0) {
+        $promo = $flash_result->fetch_assoc();
+        $discount = ($promo['discount_type'] == 'percentage') ? ($original_price * $promo['discount_value'] / 100) : $promo['discount_value'];
+        if ($promo['max_discount'] && $discount > $promo['max_discount']) $discount = $promo['max_discount'];
+        $discount_info = [
+            'price' => $original_price - $discount,
+            'has_discount' => true,
+            'discount_percent' => round(($discount / $original_price) * 100),
+            'promotion_name' => $promo['promotion_name'],
+            'original_price' => $original_price
+        ];
+        return $discount_info;
+    }
+    
+    // Kiểm tra khuyến mãi sản phẩm
+    $product_promo_query = "SELECT p.* FROM promotions p INNER JOIN promotion_products pp ON p.promotion_id=pp.promotion_id WHERE pp.product_id COLLATE utf8mb4_unicode_ci='$product_id' COLLATE utf8mb4_unicode_ci AND p.status='active' AND '$now' BETWEEN p.start_date AND p.end_date ORDER BY p.discount_value DESC LIMIT 1";
+    $product_promo_result = $conn->query($product_promo_query);
+    if ($product_promo_result && $product_promo_result->num_rows > 0) {
+        $promo = $product_promo_result->fetch_assoc();
+        $discount = ($promo['discount_type'] == 'percentage') ? ($original_price * $promo['discount_value'] / 100) : $promo['discount_value'];
+        if ($promo['max_discount'] && $discount > $promo['max_discount']) $discount = $promo['max_discount'];
+        $discount_info = [
+            'price' => $original_price - $discount,
+            'has_discount' => true,
+            'discount_percent' => round(($discount / $original_price) * 100),
+            'promotion_name' => $promo['promotion_name'],
+            'original_price' => $original_price
+        ];
+        return $discount_info;
+    }
+    
+    // Kiểm tra khuyến mãi danh mục
+    if ($category_id) {
+        $category_promo_query = "SELECT p.* FROM promotions p INNER JOIN promotion_categories pc ON p.promotion_id=pc.promotion_id WHERE pc.category_id=$category_id AND p.status='active' AND '$now' BETWEEN p.start_date AND p.end_date ORDER BY p.discount_value DESC LIMIT 1";
+        $category_promo_result = $conn->query($category_promo_query);
+        if ($category_promo_result && $category_promo_result->num_rows > 0) {
+            $promo = $category_promo_result->fetch_assoc();
+            $discount = ($promo['discount_type'] == 'percentage') ? ($original_price * $promo['discount_value'] / 100) : $promo['discount_value'];
+            if ($promo['max_discount'] && $discount > $promo['max_discount']) $discount = $promo['max_discount'];
+            $discount_info = [
+                'price' => $original_price - $discount,
+                'has_discount' => true,
+                'discount_percent' => round(($discount / $original_price) * 100),
+                'promotion_name' => $promo['promotion_name'],
+                'original_price' => $original_price
+            ];
+            return $discount_info;
+        }
+    }
+    
+    return $discount_info;
+}
 $result = $conn->query($sql);
 
 if (!$result) {
@@ -54,6 +118,32 @@ $bestsellers_query = "SELECT p.*, c.category_name,
                       ORDER BY total_sold DESC, p.sold_quantity DESC
                       LIMIT 4";
 $bestsellers_result = $conn->query($bestsellers_query);
+
+// Lấy khuyến mãi nổi bật để hiển thị banner với tên sản phẩm
+$featured_promotions_query = "SELECT p.*, 
+                              CASE 
+                                  WHEN p.promotion_type = 'product' THEN (
+                                      SELECT GROUP_CONCAT(pr.product_name SEPARATOR ', ')
+                                      FROM promotion_products pp
+                                      JOIN products pr ON pp.product_id COLLATE utf8mb4_unicode_ci = pr.product_id COLLATE utf8mb4_unicode_ci
+                                      WHERE pp.promotion_id = p.promotion_id
+                                      LIMIT 5
+                                  )
+                                  WHEN p.promotion_type = 'category' THEN (
+                                      SELECT GROUP_CONCAT(DISTINCT c.category_name SEPARATOR ', ')
+                                      FROM promotion_categories pc
+                                      JOIN categories c ON pc.category_id = c.category_id
+                                      WHERE pc.promotion_id = p.promotion_id
+                                  )
+                                  ELSE NULL
+                              END as target_names
+                              FROM promotions p
+                              WHERE p.status='active' 
+                              AND '$now' BETWEEN p.start_date AND p.end_date 
+                              AND p.promotion_type IN ('product', 'category', 'coupon')
+                              ORDER BY p.discount_value DESC 
+                              LIMIT 5";
+$featured_promotions_result = $conn->query($featured_promotions_query);
 ?>
 
 <!DOCTYPE html>
@@ -67,9 +157,72 @@ $bestsellers_result = $conn->query($bestsellers_query);
     <link rel="stylesheet" href="css/promotions.css">
     <link rel="stylesheet" href="css/mobile-optimization.css">
     <link rel="stylesheet" href="css/mobile-375px.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/fontawesome/all.min.css">
 </head>
 <body>
+
+<?php require_once 'header.php'; ?>
+
+    <!-- Promotion Banners -->
+    <?php if ($featured_promotions_result && $featured_promotions_result->num_rows > 0): ?>
+    <section class="promotion-banners" style="background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%); padding: 0; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; width: 100%;">
+        <div style="width: 100%; overflow: hidden; position: relative; padding: 12px 0;">
+            <div class="promo-marquee" style="display: flex; align-items: center; gap: 15px; padding: 0 20px;">
+                <div style="display: flex; align-items: center; gap: 8px; color: white; font-weight: bold; flex-shrink: 0; background: rgba(0,0,0,0.15); padding: 8px 15px; border-radius: 20px;">
+                    <i class="fas fa-fire" style="font-size: 18px;"></i>
+                    <span style="font-size: 15px;">KHUYẾN MÃI HOT</span>
+                </div>
+                <div class="marquee-container" style="flex: 1; overflow: hidden; position: relative; mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);">
+                    <div class="marquee-content" style="display: flex; gap: 20px; will-change: transform;">
+                        <?php 
+                        $promo_items = [];
+                        while ($featured_promo = $featured_promotions_result->fetch_assoc()) {
+                            $promo_items[] = $featured_promo;
+                        }
+                        // Duplicate items 3 times for seamless loop
+                        $all_promos = array_merge($promo_items, $promo_items, $promo_items);
+                        foreach ($all_promos as $featured_promo): 
+                        ?>
+                        <div class="promo-item" style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.95); padding: 8px 15px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <i class="fas fa-gift" style="color: #ff6b6b; font-size: 16px;"></i>
+                            <span style="font-weight: 700; color: #2d3436; font-size: 13px;"><?php echo htmlspecialchars($featured_promo['promotion_name']); ?></span>
+                            <?php if (!empty($featured_promo['target_names'])): ?>
+                                <span style="color: #636e72; font-size: 12px;">• <?php echo htmlspecialchars(mb_substr($featured_promo['target_names'], 0, 50)); ?><?php echo mb_strlen($featured_promo['target_names']) > 50 ? '...' : ''; ?></span>
+                            <?php endif; ?>
+                            <span style="background: #fdcb6e; padding: 4px 10px; border-radius: 12px; font-weight: bold; color: #2d3436; font-size: 13px;">
+                                -<?php echo $featured_promo['discount_type'] == 'percentage' ? $featured_promo['discount_value'] . '%' : number_format($featured_promo['discount_value']) . 'đ'; ?>
+                            </span>
+                            <?php if ($featured_promo['promotion_type'] == 'coupon'): ?>
+                                <span style="background: #e17055; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">
+                                    <?php echo $featured_promo['promotion_code']; ?>
+                                </span>
+                            <?php endif; ?>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <style>
+            @keyframes marquee {
+                0% { transform: translateX(0); }
+                100% { transform: translateX(calc(-100% / 3)); }
+            }
+            .marquee-content {
+                animation: marquee 35s linear infinite;
+            }
+            .marquee-content:hover {
+                animation-play-state: paused;
+            }
+            .promo-item {
+                transition: transform 0.2s;
+            }
+            .promo-item:hover {
+                transform: scale(1.05);
+            }
+        </style>
+    </section>
+    <?php endif; ?>
 
     <!-- Flash Sale Banner -->
     <?php if ($flash_sale): ?>
@@ -207,7 +360,18 @@ $bestsellers_result = $conn->query($bestsellers_query);
                             <?php if (!empty($book['author'])): ?>
                             <p class="bestseller-author"><i class="fas fa-user-edit"></i> <?php echo htmlspecialchars($book['author']); ?></p>
                             <?php endif; ?>
-                            <p class="bestseller-price"><?php echo number_format($book['price'], 0, ',', '.'); ?> VNĐ</p>
+                            <?php 
+                            $price_info = getDiscountedPrice($conn, $book['product_id'], $book['price'], $book['category_id']);
+                            ?>
+                            <?php if ($price_info['has_discount']): ?>
+                                <div class="price-container" style="display: flex; align-items: center; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                                    <span class="original-price" style="text-decoration: line-through; color: #999; font-size: 14px;"><?php echo number_format($price_info['original_price'], 0, ',', '.'); ?> VNĐ</span>
+                                    <span class="bestseller-price" style="color: #dc3545; font-weight: bold; font-size: 18px;"><?php echo number_format($price_info['price'], 0, ',', '.'); ?> VNĐ</span>
+                                    <span class="discount-badge" style="background: #ff6b6b; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: bold;">-<?php echo $price_info['discount_percent']; ?>%</span>
+                                </div>
+                            <?php else: ?>
+                                <p class="bestseller-price"><?php echo number_format($book['price'], 0, ',', '.'); ?> VNĐ</p>
+                            <?php endif; ?>
                             
                             <!-- Rating ở giữa card -->
                             <div class="product-rating" style="margin: 8px 0; display: flex; align-items: center; justify-content: center; gap: 5px;">
@@ -291,7 +455,18 @@ $bestsellers_result = $conn->query($bestsellers_query);
                         <?php if (!empty($row['author'])): ?>
                         <p class="book-author"><i class="fas fa-user-edit"></i> <?php echo htmlspecialchars($row['author']); ?></p>
                         <?php endif; ?>
-                        <p class="book-price"><?php echo number_format($row['price'], 0, ',', '.'); ?> VNĐ</p>
+                        <?php 
+                        $price_info = getDiscountedPrice($conn, $row['product_id'], $row['price'], $row['category_id']);
+                        ?>
+                        <?php if ($price_info['has_discount']): ?>
+                            <div class="price-container" style="display: flex; align-items: center; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                                <span class="original-price" style="text-decoration: line-through; color: #999; font-size: 14px;"><?php echo number_format($price_info['original_price'], 0, ',', '.'); ?> VNĐ</span>
+                                <span class="book-price" style="color: #dc3545; font-weight: bold; font-size: 18px;"><?php echo number_format($price_info['price'], 0, ',', '.'); ?> VNĐ</span>
+                                <span class="discount-badge" style="background: #ff6b6b; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: bold;">-<?php echo $price_info['discount_percent']; ?>%</span>
+                            </div>
+                        <?php else: ?>
+                            <p class="book-price"><?php echo number_format($row['price'], 0, ',', '.'); ?> VNĐ</p>
+                        <?php endif; ?>
                         
                         <!-- Rating ở giữa card -->
                         <div class="product-rating" style="margin: 8px 0; display: flex; align-items: center; justify-content: center; gap: 5px;">

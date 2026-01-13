@@ -28,7 +28,7 @@ $revenue_query = "
         AVG(total_amount) as avg_order_value
     FROM orders 
     WHERE YEAR(created_at) = ? AND MONTH(created_at) = ?
-    AND order_status != 'Đã hủy'
+    AND order_status NOT IN ('Đã hủy', 'Đã hoàn tiền')
     GROUP BY DATE_FORMAT(created_at, '%Y-%m')
 ";
 
@@ -51,7 +51,7 @@ $daily_query = "
         SUM(total_amount) as daily_revenue
     FROM orders 
     WHERE YEAR(created_at) = ? AND MONTH(created_at) = ?
-    AND order_status != 'Đã hủy'
+    AND order_status NOT IN ('Đã hủy', 'Đã hoàn tiền')
     GROUP BY DAY(created_at)
     ORDER BY DAY(created_at)
 ";
@@ -73,7 +73,7 @@ $top_products_query = "
     JOIN products p ON od.product_id = p.product_id
     JOIN orders o ON od.order_id = o.order_id
     WHERE YEAR(o.created_at) = ? AND MONTH(o.created_at) = ?
-    AND o.order_status != 'Đã hủy'
+    AND o.order_status NOT IN ('Đã hủy', 'Đã hoàn tiền')
     GROUP BY p.product_id
     ORDER BY total_sold DESC
     LIMIT 5
@@ -115,7 +115,7 @@ if (isset($prev_revenue['total_revenue']) && $prev_revenue['total_revenue'] > 0)
     <title>Báo cáo doanh thu - TTHUONG STORE</title>
     <link rel="stylesheet" href="../css/admin.css">
     <link rel="stylesheet" href="../css/admin_revenue.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/fontawesome/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -211,7 +211,7 @@ if (isset($prev_revenue['total_revenue']) && $prev_revenue['total_revenue'] > 0)
                     <?php foreach ($top_products as $index => $product): ?>
                     <div class="product-item">
                         <div class="product-rank">#<?php echo $index + 1; ?></div>
-                        <img src="<?php echo htmlspecialchars($product['image_url']); ?>" alt="<?php echo htmlspecialchars($product['product_name']); ?>">
+                        <img src="../<?php echo htmlspecialchars($product['image_url']); ?>" alt="<?php echo htmlspecialchars($product['product_name']); ?>">
                         <div class="product-details">
                             <h4><?php echo htmlspecialchars($product['product_name']); ?></h4>
                             <p class="product-sold">Đã bán: <strong><?php echo number_format($product['total_sold']); ?></strong> sản phẩm</p>

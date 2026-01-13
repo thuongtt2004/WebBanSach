@@ -92,7 +92,7 @@ if ($selected_user_id) {
     <title>Quản Lý Chat - Admin</title>
     <link rel="stylesheet" href="../css/admin.css">
     <link rel="stylesheet" href="../css/admin_chat.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/fontawesome/all.min.css">
 </head>
 <body>
     <?php include 'admin_header.php'; ?>

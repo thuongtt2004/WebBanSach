@@ -7,7 +7,7 @@
 }
 
 .author-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #8B7355 0%, #6B5644 100%);
     border-radius: 20px;
     padding: 50px;
     color: white;
@@ -15,7 +15,7 @@
     align-items: center;
     gap: 40px;
     margin-bottom: 50px;
-    box-shadow: 0 8px 24px rgba(102,126,234,0.3);
+    box-shadow: 0 8px 24px rgba(139,115,85,0.3);
 }
 
 .author-avatar-large {

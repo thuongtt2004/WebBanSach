@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/session_init.php';
+/** @var mysqli $conn */
 ?>
 <header class="user-header">
     <div class="header-top">
@@ -91,5 +92,5 @@ require_once __DIR__ . '/session_init.php';
 <link rel="stylesheet" href="css/mobile-optimization.css">
 <link rel="stylesheet" href="css/mobile-375px.css">
 
-<!-- Thêm Font Awesome cho icon -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<!-- Font Awesome Local -->
+<link rel="stylesheet" href="css/fontawesome/all.min.css">

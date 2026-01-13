@@ -6,6 +6,8 @@ session_start();
 require_once 'config/connect.php';
 require_once 'includes/email_helper.php';
 
+/** @var mysqli $conn */
+
 header('Content-Type: application/json');
 
 // Kiểm tra đăng nhập
@@ -36,6 +38,9 @@ $phone = trim($_POST['phone'] ?? '');
 $address = trim($_POST['address'] ?? '');
 $notes = trim($_POST['notes'] ?? '');
 $payment_method = trim($_POST['payment_method'] ?? 'cod');
+$promotion_id = !empty($_POST['promotion_id']) ? intval($_POST['promotion_id']) : null;
+$discount_amount = floatval($_POST['discount_amount'] ?? 0);
+$final_amount = floatval($_POST['final_amount'] ?? 0);
 
 // Validate dữ liệu
 if (empty($product_id) || empty($full_name) || empty($email) || empty($phone) || empty($address)) {
@@ -63,16 +68,21 @@ if ($product['stock_quantity'] < $quantity) {
 
 try {
     // Tính tổng tiền
-    $total_amount = $price * $quantity;
+    $subtotal = $price * $quantity;
+    $total_amount = $final_amount > 0 ? $final_amount : $subtotal;
+    $discount = $subtotal - $total_amount;
     
     // Bắt đầu transaction
     $conn->begin_transaction();
     
-    // Tạo đơn hàng mới
-    $order_query = "INSERT INTO orders (user_id, order_status, payment_method, total_amount, customer_name, customer_email, customer_phone, shipping_address, notes, created_at) 
-                    VALUES (?, 'Chờ xác nhận', ?, ?, ?, ?, ?, ?, ?, NOW())";
+    // Tạo đơn hàng mới với thông tin giảm giá
+    // Trạng thái: Chuyển khoản = "Chờ thanh toán", COD = "Chờ xác nhận"
+    $order_status = ($payment_method === 'bank_transfer') ? 'Chờ thanh toán' : 'Chờ xác nhận';
+    
+    $order_query = "INSERT INTO orders (user_id, order_status, payment_method, total_amount, discount_amount, promotion_id, full_name, email, phone, address, notes, created_at) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
     $order_stmt = $conn->prepare($order_query);
-    $order_stmt->bind_param("isdssssss", $user_id, $payment_method, $total_amount, $full_name, $email, $phone, $address, $notes);
+    $order_stmt->bind_param("issdissssss", $user_id, $order_status, $payment_method, $total_amount, $discount, $promotion_id, $full_name, $email, $phone, $address, $notes);
     
     if (!$order_stmt->execute()) {
         throw new Exception('Không thể tạo đơn hàng');

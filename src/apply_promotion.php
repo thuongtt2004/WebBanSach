@@ -6,6 +6,8 @@ ini_set('display_errors', 0);
 session_start();
 require_once 'config/connect.php';
 
+/** @var mysqli $conn */
+
 header('Content-Type: application/json');
 
 // Input: cart_items, coupon_code (optional)

@@ -23,7 +23,7 @@ if (!$result) {
     <title>Nhà xuất bản - TTHUONG Bookstore</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/publishers.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/fontawesome/all.min.css">
 </head>
 <body>
 

@@ -120,7 +120,7 @@ include 'admin_header.php';
     <link rel="stylesheet" href="../css/admin.css">
     <link rel="stylesheet" href="../css/admin-mobile.css">
     <link rel="stylesheet" href="../css/mobile-375px.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/fontawesome/all.min.css">
 <style>
 .promotions-container {
     padding: 20px;
@@ -892,8 +892,8 @@ function editPromotion(promo) {
     document.getElementById('discount_value').value = promo.discount_value;
     document.getElementById('min_order_amount').value = promo.min_order_amount;
     document.getElementById('max_discount').value = promo.max_discount || '';
-    document.getElementById('start_date').value = promo.start_date.replace(' ', 'T');
-    document.getElementById('end_date').value = promo.end_date.replace(' ', 'T');
+    document.getElementById('start_date').value = promo.start_date.replace(' ', 'T').substring(0, 16);
+    document.getElementById('end_date').value = promo.end_date.replace(' ', 'T').substring(0, 16);
     document.getElementById('usage_limit').value = promo.usage_limit || '';
     document.getElementById('description').value = promo.description || '';
     document.getElementById('status').value = promo.status;

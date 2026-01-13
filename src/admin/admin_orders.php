@@ -3,6 +3,8 @@ session_start();
 require_once '../config/connect.php';
 require_once '../includes/email_helper.php';
 
+/** @var mysqli $conn */
+
 // Kiểm tra đăng nhập admin
 if (!isset($_SESSION['admin_id'])) {
     header('Location: ../login_page.php');
@@ -91,16 +93,15 @@ if(isset($_POST['order_id']) && isset($_POST['status'])) {
             } else {
                 $message .= ' Đơn hàng chưa hoàn thành nên không cần hoàn lại tồn kho.';
             }
-            
-            // Lưu ngày hoàn tiền
-            $refund_date_sql = "UPDATE orders SET refund_date = NOW() WHERE order_id = ?";
-            $refund_stmt = $conn->prepare($refund_date_sql);
-            $refund_stmt->bind_param("i", $order_id);
-            $refund_stmt->execute();
         }
         
         // Cập nhật trạng thái đơn hàng
-        $stmt = $conn->prepare("UPDATE orders SET order_status = ? WHERE order_id = ?");
+        // Nếu set thành "Đã hủy" hoặc "Đã hoàn tiền", tự động xóa yêu cầu trả hàng
+        if ($new_status === 'Đã hủy' || $new_status === 'Đã hoàn tiền') {
+            $stmt = $conn->prepare("UPDATE orders SET order_status = ?, return_request = 0 WHERE order_id = ?");
+        } else {
+            $stmt = $conn->prepare("UPDATE orders SET order_status = ? WHERE order_id = ?");
+        }
         $stmt->bind_param("si", $new_status, $order_id);
         
         if($stmt->execute()) {
@@ -204,7 +205,7 @@ $result = $conn->query($sql);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản Lý Đơn Hàng - Admin</title>
     <link rel="stylesheet" href="../css/admin.css">    <link rel="stylesheet" href="../css/admin-mobile.css">    <link rel="stylesheet" href="../css/admin_orders.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/fontawesome/all.min.css">
 </head>
 <body>
     <?php include 'admin_header.php'; ?>

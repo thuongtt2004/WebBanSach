@@ -34,7 +34,7 @@ require_once 'header.php';
     <title>Theo dõi đơn hàng - TTHUONG Store</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/theodoidonhang.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/fontawesome/all.min.css">
 </head>
 <body>
 

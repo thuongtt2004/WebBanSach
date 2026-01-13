@@ -77,8 +77,8 @@ if (isset($_POST['process_return'])) {
         }
         
     } elseif ($action === 'reject') {
-        // Từ chối trả hàng
-        $update_sql = "UPDATE orders SET return_status = 'Từ chối', return_rejected_date = NOW() WHERE order_id = ?";
+        // Từ chối trả hàng - cũng xóa khỏi danh sách yêu cầu
+        $update_sql = "UPDATE orders SET return_status = 'Từ chối', return_request = 0, return_rejected_date = NOW() WHERE order_id = ?";
         $update_stmt = $conn->prepare($update_sql);
         $update_stmt->bind_param("i", $order_id);
         
@@ -118,7 +118,7 @@ $return_result = $conn->query($return_sql);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản Lý Yêu Cầu Trả Hàng - Admin</title>
     <link rel="stylesheet" href="../css/admin.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/fontawesome/all.min.css">
     <style>
         .return-requests {
             padding: 20px;

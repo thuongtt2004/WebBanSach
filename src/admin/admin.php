@@ -2,6 +2,8 @@
 session_start();
 require_once '../config/connect.php';
 
+/** @var mysqli $conn */
+
 // Kiểm tra đăng nhập admin
 if(!isset($_SESSION['admin_id'])) {
     header('Location: ../login_page.php');

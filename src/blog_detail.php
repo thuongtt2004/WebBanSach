@@ -75,7 +75,7 @@ $total_comments = $count_result->fetch_assoc()['total'];
     <title><?php echo htmlspecialchars($post['title']); ?> - TTHUONG Bookstore</title>
     <meta name="description" content="<?php echo htmlspecialchars($post['excerpt']); ?>">
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/fontawesome/all.min.css">
 </head>
 <body>
 

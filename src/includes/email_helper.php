@@ -538,7 +538,7 @@ function get_order_confirmation_template($customer_name, $order_id, $total_amoun
             
             <div class="footer">
                 <p><strong>Bookstore - Nhà Sách Online</strong></p>
-                <p>📧 Email: support@bookstore.com | 📞 Hotline: 1900-xxxx</p>
+                <p>📧 Email: dubu2k4@gmail.com | 📞 Hotline: 0392656499</p>
                 <p>© 2026 Bookstore. All rights reserved.</p>
             </div>
         </div>

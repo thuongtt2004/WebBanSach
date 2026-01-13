@@ -7,6 +7,8 @@ session_start();
 require_once 'config/connect.php';
 require_once 'includes/email_helper.php';
 
+/** @var mysqli $conn */
+
 header('Content-Type: application/json');
 
 // Kiểm tra đăng nhập

@@ -36,7 +36,9 @@ try {
         throw new Exception("Không tìm thấy đơn hàng");
     }
     
-    if ($order['order_status'] !== 'Chờ thanh toán') {
+    // Cho phép upload khi đơn hàng ở trạng thái "Chờ thanh toán" hoặc "Chờ xác nhận" (với payment method là bank_transfer)
+    $allowed_statuses = ['Chờ thanh toán', 'Chờ xác nhận'];
+    if (!in_array($order['order_status'], $allowed_statuses)) {
         throw new Exception("Đơn hàng này không cần upload chứng từ");
     }
 

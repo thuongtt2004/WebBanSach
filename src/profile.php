@@ -2,6 +2,8 @@
 require_once 'config/connect.php';
 require_once 'session_init.php';
 
+/** @var mysqli $conn */
+
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit();
@@ -87,7 +89,7 @@ require_once 'header.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trang cá nhân - TTHUONG Store</title>
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/fontawesome/all.min.css">
     <style>
         .profile-container {
             max-width: 1200px;

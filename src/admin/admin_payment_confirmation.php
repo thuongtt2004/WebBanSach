@@ -2,6 +2,8 @@
 session_start();
 require_once '../config/connect.php';
 
+/** @var mysqli $conn */
+
 // Kiểm tra đăng nhập admin
 if (!isset($_SESSION['admin_id'])) {
     header('Location: ../login_page.php');
@@ -11,9 +13,10 @@ if (!isset($_SESSION['admin_id'])) {
 // Tự động hủy đơn hàng quá hạn 24h
 require_once __DIR__ . '/../auto_cancel_expired_orders.php';
 
-// Lấy danh sách đơn hàng chờ thanh toán
+// Lấy danh sách đơn hàng chờ thanh toán (bao gồm cả "Chờ xác nhận" với bank_transfer)
 $sql = "SELECT * FROM orders 
-        WHERE order_status = 'Chờ thanh toán' AND payment_method = 'bank_transfer'
+        WHERE (order_status = 'Chờ thanh toán' OR (order_status = 'Chờ xác nhận' AND payment_method = 'bank_transfer'))
+        AND payment_method = 'bank_transfer'
         ORDER BY created_at DESC";
 $result = $conn->query($sql);
 ?>
@@ -25,7 +28,7 @@ $result = $conn->query($sql);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Xác Nhận Thanh Toán - Admin</title>
     <link rel="stylesheet" href="../css/admin.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/fontawesome/all.min.css">
     <style>
         .payment-confirmation {
             padding: 20px;
@@ -334,10 +337,10 @@ $result = $conn->query($sql);
                             <div class="payment-proof">
                                 <div class="info-title"><i class="fas fa-image"></i> Chứng từ chuyển khoản</div>
                                 <?php if (!empty($order['payment_proof'])): ?>
-                                    <img src="<?php echo htmlspecialchars($order['payment_proof']); ?>" 
+                                    <img src="../<?php echo htmlspecialchars($order['payment_proof']); ?>" 
                                          alt="Payment Proof" 
                                          class="proof-image"
-                                         onclick="openImageModal('<?php echo htmlspecialchars($order['payment_proof']); ?>')">
+                                         onclick="openImageModal('../<?php echo htmlspecialchars($order['payment_proof']); ?>')">
                                 <?php else: ?>
                                     <div class="no-proof">
                                         <i class="fas fa-exclamation-triangle"></i>

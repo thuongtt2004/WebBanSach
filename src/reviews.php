@@ -2,6 +2,8 @@
 require_once 'config/connect.php';
 require_once 'session_init.php';
 
+/** @var mysqli $conn */
+
 if (!isset($_SESSION['user_id'])) {
     header('Location: login_page.php');
     exit();
@@ -55,7 +57,7 @@ require_once 'header.php';
     <title>Đánh giá sản phẩm - TTHUONG Store</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/reviews.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/fontawesome/all.min.css">
 </head>
 <body>
 

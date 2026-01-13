@@ -58,7 +58,7 @@ $products_result = $conn->query($sql);
     <link rel="stylesheet" href="../css/admin-mobile.css">
     <link rel="stylesheet" href="../css/admin_reviews.css">
     <link rel="stylesheet" href="../css/mobile-375px.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/fontawesome/all.min.css">
     <style>
         .products-list {
             display: grid;

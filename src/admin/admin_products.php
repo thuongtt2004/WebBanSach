@@ -113,11 +113,17 @@ if (isset($_POST['update_product'])) {
     }
 }
 
-// Lấy danh sách sản phẩm
+// Lấy category từ URL nếu có
+$selected_category = isset($_GET['category']) ? (int)$_GET['category'] : null;
+
+// Lấy danh sách sản phẩm (có thể lọc theo category)
 $sql = "SELECT p.*, c.category_name 
         FROM products p 
-        LEFT JOIN categories c ON p.category_id = c.category_id 
-        ORDER BY p.product_id DESC";
+        LEFT JOIN categories c ON p.category_id = c.category_id ";
+if ($selected_category) {
+    $sql .= "WHERE p.category_id = " . $selected_category . " ";
+}
+$sql .= "ORDER BY p.product_id DESC";
 $result = $conn->query($sql);
 
 // Lấy danh sách danh mục cho form cập nhật
@@ -161,7 +167,7 @@ if ($publishers_result) {
     <link rel="stylesheet" href="../css/admin-mobile.css">
     <link rel="stylesheet" href="../css/admin_products.css">
     <link rel="stylesheet" href="../css/mobile-375px.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/fontawesome/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         .searchable-select-wrapper {
@@ -215,6 +221,24 @@ if ($publishers_result) {
         .searchable-select-item.hidden {
             display: none;
         }
+        
+        .button-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-section {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding: 10px 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
     </style>
 </head>
 <body>
@@ -224,10 +248,45 @@ if ($publishers_result) {
     <div class="container">
         <h1><i class="fas fa-book"></i> Quản Lý Sách</h1>
         
+        <?php if ($selected_category): 
+            // Lấy tên danh mục
+            $cat_name_query = $conn->query("SELECT category_name FROM categories WHERE category_id = $selected_category");
+            if ($cat_name_query && $cat_name_query->num_rows > 0) {
+                $cat_name = $cat_name_query->fetch_assoc()['category_name'];
+        ?>
+        <div style="background:#e3f2fd;padding:12px 20px;border-radius:8px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;">
+            <span style="color:#1976d2;font-weight:500;">
+                <i class="fas fa-filter"></i> Đang hiển thị sản phẩm thuộc danh mục: <strong><?php echo htmlspecialchars($cat_name); ?></strong>
+            </span>
+            <a href="admin_products.php" style="color:#1976d2;text-decoration:none;font-weight:500;">
+                <i class="fas fa-times-circle"></i> Xóa bộ lọc
+            </a>
+        </div>
+        <?php 
+            }
+        endif; ?>
+        
         <div class="button-container">
-            <a href="/TTHUONG/add_product.php" class="add-product-btn">
+            <a href="../add_product.php" class="add-product-btn">
                 <i class="fas fa-plus"></i> Thêm sách mới
             </a>
+            <div class="filter-section" style="display:flex;gap:10px;align-items:center;">
+                <label for="categoryFilterSelect" style="font-weight:500;color:#333;">
+                    <i class="fas fa-filter"></i> Lọc danh mục:
+                </label>
+                <select id="categoryFilterSelect" onchange="filterByCategory()" style="padding:8px 12px;border:1px solid #ddd;border-radius:4px;font-size:14px;min-width:200px;">
+                    <option value="all" <?php echo !$selected_category ? 'selected' : ''; ?>>Tất cả danh mục</option>
+                    <?php
+                    $cat_filter_query = $conn->query("SELECT * FROM categories ORDER BY category_name");
+                    while($cat = $cat_filter_query->fetch_assoc()): 
+                        $is_selected = ($selected_category == $cat['category_id']) ? 'selected' : '';
+                    ?>
+                        <option value="<?php echo $cat['category_id']; ?>" <?php echo $is_selected; ?>>
+                            <?php echo htmlspecialchars($cat['category_name']); ?>
+                        </option>
+                    <?php endwhile; ?>
+                </select>
+            </div>
             <div class="search-box">
                 <i class="fas fa-search"></i>
                 <input type="text" id="searchInput" placeholder="Tìm kiếm sách theo tên, tác giả, danh mục..." onkeyup="searchProducts()">
@@ -259,7 +318,7 @@ if ($publishers_result) {
                             <td><?php echo number_format($row['price'], 0, ',', '.'); ?> VNĐ</td>
                             <td><?php echo $row['stock_quantity']; ?></td>
                             <td><?php echo $row['sold_quantity']; ?></td>
-                            <td><img src="../<?php echo $row['image_url']; ?>" width="50" alt="<?php echo $row['product_name']; ?>"></td>
+                            <td><img src="../<?php echo htmlspecialchars($row['image_url']); ?>" width="50" alt="<?php echo htmlspecialchars($row['product_name']); ?>"></td>
                             <td class="actions-cell">
                                 <div class="action-buttons">
                                     <button class="btn-edit" onclick="openEditModal(<?php echo htmlspecialchars(json_encode($row)); ?>)">
@@ -570,6 +629,16 @@ if ($publishers_result) {
                 initSearchableSelect('edit_publisher', 'edit_publisher_dropdown');
             }, 100);
         };
+        
+        // Filter by category function
+        function filterByCategory() {
+            const categoryId = document.getElementById('categoryFilterSelect').value;
+            if (categoryId === 'all') {
+                window.location.href = 'admin_products.php';
+            } else {
+                window.location.href = 'admin_products.php?category=' + categoryId;
+            }
+        }
         
         // Search products function
         function searchProducts() {

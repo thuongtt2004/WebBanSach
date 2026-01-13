@@ -83,8 +83,8 @@ $authors = $conn->query("SELECT * FROM authors WHERE status = 'active'");
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $post ? 'Sửa' : 'Thêm'; ?> bài viết</title>
     <link rel="stylesheet" href="../css/admin.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js"></script>
+    <link rel="stylesheet" href="../css/fontawesome/all.min.css">
+    <script src="../js/tinymce/js/tinymce/tinymce.min.js"></script>
     <style>
         .form-container {
             padding: 20px;
@@ -192,7 +192,7 @@ $authors = $conn->query("SELECT * FROM authors WHERE status = 'active'");
 
                 <div class="form-group">
                     <label>Nội dung *</label>
-                    <textarea name="content" id="content" required><?php echo $post ? htmlspecialchars($post['content']) : ''; ?></textarea>
+                    <textarea name="content" id="content"><?php echo $post ? htmlspecialchars($post['content']) : ''; ?></textarea>
                 </div>
 
                 <div class="form-row">
@@ -273,7 +273,28 @@ $authors = $conn->query("SELECT * FROM authors WHERE status = 'active'");
                 'insertdatetime', 'media', 'table', 'help', 'wordcount'
             ],
             toolbar: 'undo redo | blocks | bold italic forecolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help',
-            content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+            content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+            setup: function(editor) {
+                editor.on('init', function() {
+                    console.log('TinyMCE initialized');
+                });
+            }
+        });
+
+        // Đảm bảo TinyMCE sync nội dung trước khi submit
+        document.querySelector('form').addEventListener('submit', function(e) {
+            if (typeof tinymce !== 'undefined' && tinymce.get('content')) {
+                tinymce.get('content').save();
+                
+                // Validate content
+                var content = tinymce.get('content').getContent({format: 'text'}).trim();
+                if (content.length === 0) {
+                    e.preventDefault();
+                    alert('Vui lòng nhập nội dung bài viết!');
+                    return false;
+                }
+            }
+            console.log('Form submitting...');
         });
 
         function generateSlug() {

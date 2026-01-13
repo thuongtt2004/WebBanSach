@@ -91,7 +91,7 @@ $result = $conn->query($sql);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản Lý Danh Mục - Admin</title>
     <link rel="stylesheet" href="../css/admin.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/fontawesome/all.min.css">
     <style>
         .categories-container {
             padding: 20px;
@@ -249,9 +249,11 @@ $result = $conn->query($sql);
                                 <td><strong><?php echo htmlspecialchars($category['category_name']); ?></strong></td>
                                 <td><?php echo htmlspecialchars($category['description'] ?? 'Chưa có mô tả'); ?></td>
                                 <td>
-                                    <span style="background:#007bff;color:white;padding:4px 12px;border-radius:12px;font-size:12px;">
-                                        <?php echo $category['product_count']; ?> sản phẩm
-                                    </span>
+                                    <a href="admin_products.php?category=<?php echo $category['category_id']; ?>" style="text-decoration:none;">
+                                        <span style="background:#007bff;color:white;padding:4px 12px;border-radius:12px;font-size:12px;cursor:pointer;display:inline-block;transition:background 0.3s;" onmouseover="this.style.background='#0056b3'" onmouseout="this.style.background='#007bff'">
+                                            <?php echo $category['product_count']; ?> sản phẩm
+                                        </span>
+                                    </a>
                                 </td>
                                 <td>
                                     <button onclick="editCategory(<?php echo $category['category_id']; ?>, '<?php echo htmlspecialchars($category['category_name'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($category['description'] ?? '', ENT_QUOTES); ?>')" class="btn btn-warning">

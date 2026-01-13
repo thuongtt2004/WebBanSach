@@ -93,6 +93,17 @@ if ($should_run) {
             <li>
                 <a href="<?php echo $menu_prefix; ?>admin_orders.php" class="<?php echo $current_page == 'admin_orders.php' ? 'active' : ''; ?>">
                     <i class="fas fa-shopping-cart"></i> Đơn hàng
+                    <?php
+                    // Đếm đơn hàng mới (Chờ xác nhận)
+                    $new_orders_query = "SELECT COUNT(*) as count FROM orders WHERE order_status = 'Chờ xác nhận'";
+                    $new_orders_result = $conn->query($new_orders_query);
+                    if ($new_orders_result && ($row = $new_orders_result->fetch_assoc())) {
+                        $new_orders_count = $row['count'];
+                        if ($new_orders_count > 0): ?>
+                            <span class="admin-badge"><?php echo $new_orders_count; ?></span>
+                        <?php endif;
+                    }
+                    ?>
                 </a>
             </li>
             <li>
@@ -115,8 +126,10 @@ if ($should_run) {
                 <a href="<?php echo $menu_prefix; ?>admin_payment_confirmation.php" class="<?php echo $current_page == 'admin_payment_confirmation.php' ? 'active' : ''; ?>">
                     <i class="fas fa-check-circle"></i> Xác nhận thanh toán
                     <?php
-                    // Đếm đơn chờ thanh toán
-                    $pending_payment_query = "SELECT COUNT(*) as count FROM orders WHERE order_status = 'Chờ thanh toán' AND payment_method = 'bank_transfer'";
+                    // Đếm đơn chờ thanh toán (bao gồm cả "Chờ xác nhận" với bank_transfer)
+                    $pending_payment_query = "SELECT COUNT(*) as count FROM orders 
+                                            WHERE (order_status = 'Chờ thanh toán' OR (order_status = 'Chờ xác nhận' AND payment_method = 'bank_transfer'))
+                                            AND payment_method = 'bank_transfer'";
                     $pending_payment_result = $conn->query($pending_payment_query);
                     if ($pending_payment_result && ($row = $pending_payment_result->fetch_assoc())) {
                         $pending_count = $row['count'];

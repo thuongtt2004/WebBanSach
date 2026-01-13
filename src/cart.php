@@ -42,7 +42,7 @@ require_once 'header.php';
     <link rel="stylesheet" href="css/dathang.css">
     <link rel="stylesheet" href="css/modal.css">
     <link rel="stylesheet" href="css/payment.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="css/fontawesome/all.min.css">
 </head>
 <body>
 
@@ -85,6 +85,22 @@ require_once 'header.php';
 
             <div class="cart-summary">
                 <h3><i class="fas fa-receipt"></i> Chi tiết đơn hàng</h3>
+                
+                <!-- Order Items Summary -->
+                <div class="order-items-summary">
+                    <?php 
+                    $cart_items->data_seek(0); // Reset pointer
+                    while ($item = $cart_items->fetch_assoc()): 
+                    ?>
+                    <div class="order-item-summary">
+                        <div class="item-info">
+                            <span class="item-name"><?php echo htmlspecialchars($item['product_name']); ?></span>
+                            <span class="item-quantity">x<?php echo $item['quantity']; ?></span>
+                        </div>
+                        <span class="item-price"><?php echo number_format($item['price'] * $item['quantity'], 0, ',', '.'); ?> VNĐ</span>
+                    </div>
+                    <?php endwhile; ?>
+                </div>
                 
                 <!-- Promotion Section -->
                 <div class="promotion-section">

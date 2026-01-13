@@ -39,20 +39,26 @@ try {
         throw new Exception("Đơn hàng này không phải thanh toán chuyển khoản");
     }
     
-    if ($order['order_status'] !== 'Chờ thanh toán') {
+    // Chấp nhận cả "Chờ thanh toán" và "Chờ xác nhận" với bank_transfer
+    $allowed_statuses = ['Chờ thanh toán', 'Chờ xác nhận'];
+    if (!in_array($order['order_status'], $allowed_statuses)) {
         throw new Exception("Đơn hàng này đã được xử lý");
     }
 
     if ($action === 'approve') {
-        // Xác nhận thanh toán - chuyển sang "Chờ xác nhận"
-        $update_sql = "UPDATE orders SET order_status = 'Chờ xác nhận' WHERE order_id = ?";
+        // Xác nhận thanh toán
+        // Nếu đang "Chờ thanh toán" -> chuyển sang "Đã xác nhận" (đã thanh toán rồi)
+        // Nếu đang "Chờ xác nhận" -> chuyển sang "Đã xác nhận" (xác nhận đơn hàng)
+        $new_status = 'Đã xác nhận';
+        
+        $update_sql = "UPDATE orders SET order_status = ? WHERE order_id = ?";
         $update_stmt = $conn->prepare($update_sql);
-        $update_stmt->bind_param("i", $order_id);
+        $update_stmt->bind_param("si", $new_status, $order_id);
         $update_stmt->execute();
         
         echo json_encode([
             'success' => true,
-            'message' => 'Đã xác nhận thanh toán. Đơn hàng chuyển sang trạng thái "Chờ xác nhận"'
+            'message' => 'Đã xác nhận thanh toán. Đơn hàng chuyển sang trạng thái "Đã xác nhận"'
         ]);
         
     } elseif ($action === 'reject') {

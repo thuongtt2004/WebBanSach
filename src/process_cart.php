@@ -2,6 +2,8 @@
 session_start();
 require_once 'config/connect.php';
 
+/** @var mysqli $conn */
+
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['user_id'])) {

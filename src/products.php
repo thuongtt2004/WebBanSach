@@ -2,6 +2,72 @@
 require_once 'config/connect.php';
 require_once 'header.php';
 
+/** @var mysqli $conn */
+
+// Function để tính giá sau khuyến mãi
+function getDiscountedPrice($conn, $product_id, $original_price, $category_id) {
+    $now = date('Y-m-d H:i:s');
+    $discount_info = ['price' => $original_price, 'has_discount' => false, 'discount_percent' => 0, 'promotion_name' => ''];
+    
+    // Kiểm tra flash sale
+    $flash_query = "SELECT * FROM promotions WHERE promotion_type='flash_sale' AND status='active' AND '$now' BETWEEN start_date AND end_date ORDER BY discount_value DESC LIMIT 1";
+    $flash_result = $conn->query($flash_query);
+    if ($flash_result && $flash_result->num_rows > 0) {
+        $promo = $flash_result->fetch_assoc();
+        $discount = ($promo['discount_type'] == 'percentage') ? ($original_price * $promo['discount_value'] / 100) : $promo['discount_value'];
+        if ($promo['max_discount'] && $discount > $promo['max_discount']) $discount = $promo['max_discount'];
+        $discount_info = [
+            'price' => $original_price - $discount,
+            'has_discount' => true,
+            'discount_percent' => round(($discount / $original_price) * 100),
+            'promotion_name' => $promo['promotion_name'],
+            'original_price' => $original_price
+        ];
+        return $discount_info;
+    }
+    
+    // Kiểm tra khuyến mãi sản phẩm
+    $product_promo_query = "SELECT p.* FROM promotions p INNER JOIN promotion_products pp ON p.promotion_id=pp.promotion_id WHERE pp.product_id COLLATE utf8mb4_unicode_ci='$product_id' COLLATE utf8mb4_unicode_ci AND p.status='active' AND '$now' BETWEEN p.start_date AND p.end_date ORDER BY p.discount_value DESC LIMIT 1";
+    $product_promo_result = $conn->query($product_promo_query);
+    if ($product_promo_result && $product_promo_result->num_rows > 0) {
+        $promo = $product_promo_result->fetch_assoc();
+        $discount = ($promo['discount_type'] == 'percentage') ? ($original_price * $promo['discount_value'] / 100) : $promo['discount_value'];
+        if ($promo['max_discount'] && $discount > $promo['max_discount']) $discount = $promo['max_discount'];
+        $discount_info = [
+            'price' => $original_price - $discount,
+            'has_discount' => true,
+            'discount_percent' => round(($discount / $original_price) * 100),
+            'promotion_name' => $promo['promotion_name'],
+            'original_price' => $original_price
+        ];
+        return $discount_info;
+    }
+    
+    // Kiểm tra khuyến mãi danh mục
+    if ($category_id) {
+        $category_promo_query = "SELECT p.* FROM promotions p INNER JOIN promotion_categories pc ON p.promotion_id=pc.promotion_id WHERE pc.category_id=$category_id AND p.status='active' AND '$now' BETWEEN p.start_date AND p.end_date ORDER BY p.discount_value DESC LIMIT 1";
+        $category_promo_result = $conn->query($category_promo_query);
+        if ($category_promo_result && $category_promo_result->num_rows > 0) {
+            $promo = $category_promo_result->fetch_assoc();
+            $discount = ($promo['discount_type'] == 'percentage') ? ($original_price * $promo['discount_value'] / 100) : $promo['discount_value'];
+            if ($promo['max_discount'] && $discount > $promo['max_discount']) $discount = $promo['max_discount'];
+            $discount_info = [
+                'price' => $original_price - $discount,
+                'has_discount' => true,
+                'discount_percent' => round(($discount / $original_price) * 100),
+                'promotion_name' => $promo['promotion_name'],
+                'original_price' => $original_price
+            ];
+            return $discount_info;
+        }
+    }
+    
+    return $discount_info;
+}
+
+// Lấy category từ URL nếu có
+$selected_category = isset($_GET['category']) ? $_GET['category'] : 'all';
+
 // Phân trang
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $limit = 12; // Hiển thị 12 sản phẩm mỗi trang
@@ -13,7 +79,7 @@ $count_result = $conn->query($count_sql);
 $total_products = $count_result->fetch_assoc()['total'];
 $total_pages = ceil($total_products / $limit);
 
-// Lấy danh sách sách từ database với rating trung bình và phân trang
+// Lấy TOÀN BỘ sản phẩm từ database (không phân trang) để bộ lọc hoạt động trên tất cả
 $sql = "SELECT p.*, c.category_name,
         COALESCE(AVG(r.rating), 0) as average_rating,
         COUNT(r.review_id) as review_count
@@ -21,12 +87,8 @@ $sql = "SELECT p.*, c.category_name,
         LEFT JOIN categories c ON p.category_id = c.category_id 
         LEFT JOIN reviews r ON p.product_id = r.product_id
         GROUP BY p.product_id
-        ORDER BY p.product_id DESC
-        LIMIT ? OFFSET ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("ii", $limit, $offset);
-$stmt->execute();
-$result = $stmt->get_result();
+        ORDER BY p.product_id DESC";
+$result = $conn->query($sql);
 
 if (!$result) {
     die("Lỗi truy vấn: " . $conn->error);
@@ -77,12 +139,14 @@ if (!$result) {
             <div class="filter-section">
                 <h4><i class="fas fa-list"></i> Danh mục</h4>
                 <select id="categoryFilter">
-                    <option value="all">Tất cả danh mục</option>
+                    <option value="all" <?php echo $selected_category === 'all' ? 'selected' : ''; ?>>Tất cả danh mục</option>
                     <?php
                     $categories_query = "SELECT * FROM categories ORDER BY category_name";
                     $categories_result = $conn->query($categories_query);
-                    while($cat = $categories_result->fetch_assoc()): ?>
-                        <option value="<?php echo $cat['category_id']; ?>"><?php echo htmlspecialchars($cat['category_name']); ?></option>
+                    while($cat = $categories_result->fetch_assoc()): 
+                        $is_selected = ($selected_category == $cat['category_id']) ? 'selected' : '';
+                    ?>
+                        <option value="<?php echo $cat['category_id']; ?>" <?php echo $is_selected; ?>><?php echo htmlspecialchars($cat['category_name']); ?></option>
                     <?php endwhile; ?>
                 </select>
             </div>
@@ -129,7 +193,7 @@ if (!$result) {
             <div class="products-header">
                 <div class="header-left">
                     <h2><i class="fas fa-book"></i> Tất cả sách</h2>
-                    <span class="product-count" id="productCount">Hiển thị <?php echo $result->num_rows; ?> sản phẩm</span>
+                    <span class="product-count" id="productCount">Hiển thị <?php echo $result->num_rows; ?> / <?php echo $total_products; ?> sản phẩm</span>
                 </div>
                 <div class="header-right">
                     <label for="sortFilter">Sắp xếp:</label>
@@ -181,7 +245,18 @@ if (!$result) {
                         <?php if (!empty($row['author'])): ?>
                         <p class="book-author"><i class="fas fa-user-edit"></i> <?php echo htmlspecialchars($row['author']); ?></p>
                         <?php endif; ?>
-                        <p class="book-price"><?php echo number_format($row['price'], 0, ',', '.'); ?> VNĐ</p>
+                        <?php 
+                        $price_info = getDiscountedPrice($conn, $row['product_id'], $row['price'], $row['category_id']);
+                        ?>
+                        <?php if ($price_info['has_discount']): ?>
+                            <div class="price-container" style="display: flex; align-items: center; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                                <span class="original-price" style="text-decoration: line-through; color: #999; font-size: 14px;"><?php echo number_format($price_info['original_price'], 0, ',', '.'); ?> VNĐ</span>
+                                <span class="book-price" style="color: #dc3545; font-weight: bold; font-size: 18px;"><?php echo number_format($price_info['price'], 0, ',', '.'); ?> VNĐ</span>
+                                <span class="discount-badge" style="background: #ff6b6b; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: bold;">-<?php echo $price_info['discount_percent']; ?>%</span>
+                            </div>
+                        <?php else: ?>
+                            <p class="book-price"><?php echo number_format($row['price'], 0, ',', '.'); ?> VNĐ</p>
+                        <?php endif; ?>
                         
                         <!-- Rating ở giữa card -->
                         <div class="product-rating" style="margin: 8px 0; display: flex; align-items: center; justify-content: center; gap: 5px;">
@@ -209,14 +284,13 @@ if (!$result) {
                         <span class="book-format-badge"><?php echo htmlspecialchars($row['book_format']); ?></span>
                         <?php endif; ?>
                         <div class="button-group">
-                            <button onclick="addToCart('<?php echo $row['product_id']; ?>', 
+                            <button onclick="event.stopPropagation(); addToCart('<?php echo $row['product_id']; ?>', 
                                                      '<?php echo addslashes($row['product_name']); ?>', 
                                                      <?php echo $row['price']; ?>)" 
                                     class="add-to-cart">
                                 Thêm vào giỏ hàng
                             </button>
-                            <button onclick="event.stopPropagation(); window.location.href='buy_now_page.php?id=<?php echo $row['product_id']; ?>'" 
-                                    class="buy-now">
+                            <button class="buy-now" data-product-id="<?php echo $row['product_id']; ?>">
                                 Mua ngay
                             </button>
                         </div>
@@ -229,53 +303,10 @@ if (!$result) {
             ?>
         </div>
         
-        <!-- Phân trang -->
-        <?php if ($total_pages > 1): ?>
-        <div class="pagination">
-            <?php if ($page > 1): ?>
-                <a href="?page=<?php echo $page - 1; ?>" class="pagination-btn">
-                    <i class="fas fa-chevron-left"></i> Trước
-                </a>
-            <?php endif; ?>
-            
-            <?php
-            // Hiển thị các trang
-            $start_page = max(1, $page - 2);
-            $end_page = min($total_pages, $page + 2);
-            
-            if ($start_page > 1): ?>
-                <a href="?page=1" class="pagination-number">1</a>
-                <?php if ($start_page > 2): ?>
-                    <span class="pagination-dots">...</span>
-                <?php endif; ?>
-            <?php endif; ?>
-            
-            <?php for ($i = $start_page; $i <= $end_page; $i++): ?>
-                <a href="?page=<?php echo $i; ?>" 
-                   class="pagination-number <?php echo $i == $page ? 'active' : ''; ?>">
-                    <?php echo $i; ?>
-                </a>
-            <?php endfor; ?>
-            
-            <?php if ($end_page < $total_pages): ?>
-                <?php if ($end_page < $total_pages - 1): ?>
-                    <span class="pagination-dots">...</span>
-                <?php endif; ?>
-                <a href="?page=<?php echo $total_pages; ?>" class="pagination-number"><?php echo $total_pages; ?></a>
-            <?php endif; ?>
-            
-            <?php if ($page < $total_pages): ?>
-                <a href="?page=<?php echo $page + 1; ?>" class="pagination-btn">
-                    Tiếp <i class="fas fa-chevron-right"></i>
-                </a>
-            <?php endif; ?>
-        </div>
+        <!-- Pagination (JS-based) -->
+        <div class="pagination" id="pagination"></div>
         
-        <div class="pagination-info">
-            Trang <?php echo $page; ?> / <?php echo $total_pages; ?> 
-            (<?php echo $total_products; ?> sản phẩm)
-        </div>
-        <?php endif; ?>
+        <div class="pagination-info" id="paginationInfo"></div>
     </section>
         </main>
     </div>
@@ -347,6 +378,10 @@ if (!$result) {
         });
 
         // Filter products
+        // Phân trang client-side
+        let currentPage = 1;
+        const itemsPerPage = 12;
+
         document.getElementById('categoryFilter').addEventListener('change', filterProducts);
         document.getElementById('priceFilter').addEventListener('change', filterProducts);
         document.getElementById('languageFilter').addEventListener('change', filterProducts);
@@ -358,7 +393,7 @@ if (!$result) {
             const language = document.getElementById('languageFilter').value;
             const format = document.getElementById('formatFilter').value;
             const products = document.querySelectorAll('.product');
-            let visibleCount = 0;
+            let visibleProducts = [];
 
             products.forEach(product => {
                 const productCategory = product.getAttribute('data-category');
@@ -384,22 +419,142 @@ if (!$result) {
                 }
 
                 if (showByCategory && showByPrice && showByLanguage && showByFormat) {
-                    product.style.display = 'block';
-                    visibleCount++;
-                } else {
-                    product.style.display = 'none';
+                    visibleProducts.push(product);
                 }
             });
             
-            updateProductCount(visibleCount);
+            currentPage = 1; // Reset về trang 1
+            displayPage(visibleProducts);
         }
 
-        function updateProductCount(count) {
+        function displayPage(visibleProducts) {
+            const products = document.querySelectorAll('.product');
+            
+            // Ẩn tất cả sản phẩm
+            products.forEach(product => product.style.display = 'none');
+            
+            // Tính toán sản phẩm hiển thị
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageProducts = visibleProducts.slice(start, end);
+            
+            // Hiển thị sản phẩm của trang hiện tại
+            pageProducts.forEach(product => product.style.display = 'block');
+            
+            // Cập nhật thông tin
+            updateProductCount(visibleProducts.length, pageProducts.length);
+            updatePagination(visibleProducts.length);
+        }
+
+        function updateProductCount(totalVisible, currentVisible) {
             const countElement = document.getElementById('productCount');
             if (countElement) {
-                countElement.textContent = `Hiển thị ${count} sản phẩm`;
+                const total = <?php echo $total_products; ?>;
+                countElement.textContent = `Hiển thị ${currentVisible} / ${totalVisible} sản phẩm`;
             }
         }
+
+        function updatePagination(totalVisible) {
+            const totalPages = Math.ceil(totalVisible / itemsPerPage);
+            const paginationDiv = document.getElementById('pagination');
+            const paginationInfo = document.getElementById('paginationInfo');
+            
+            if (totalPages <= 1) {
+                paginationDiv.innerHTML = '';
+                paginationInfo.innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            
+            // Nút Trước
+            if (currentPage > 1) {
+                html += `<a href="javascript:void(0)" onclick="changePage(${currentPage - 1})" class="pagination-btn"><i class="fas fa-chevron-left"></i> Trước</a>`;
+            }
+            
+            // Các số trang
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, currentPage + 2);
+            
+            if (startPage > 1) {
+                html += `<a href="javascript:void(0)" onclick="changePage(1)" class="pagination-number">1</a>`;
+                if (startPage > 2) {
+                    html += `<span class="pagination-dots">...</span>`;
+                }
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<a href="javascript:void(0)" onclick="changePage(${i})" class="pagination-number ${i === currentPage ? 'active' : ''}">${i}</a>`;
+            }
+            
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    html += `<span class="pagination-dots">...</span>`;
+                }
+                html += `<a href="javascript:void(0)" onclick="changePage(${totalPages})" class="pagination-number">${totalPages}</a>`;
+            }
+            
+            // Nút Tiếp
+            if (currentPage < totalPages) {
+                html += `<a href="javascript:void(0)" onclick="changePage(${currentPage + 1})" class="pagination-btn">Tiếp <i class="fas fa-chevron-right"></i></a>`;
+            }
+            
+            paginationDiv.innerHTML = html;
+            paginationInfo.innerHTML = `Trang ${currentPage} / ${totalPages} (${totalVisible} sản phẩm)`;
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            const category = document.getElementById('categoryFilter').value;
+            const priceRange = document.getElementById('priceFilter').value;
+            const language = document.getElementById('languageFilter').value;
+            const format = document.getElementById('formatFilter').value;
+            const products = document.querySelectorAll('.product');
+            let visibleProducts = [];
+
+            products.forEach(product => {
+                const productCategory = product.getAttribute('data-category');
+                const productPrice = parseInt(product.getAttribute('data-price'));
+                const productLanguage = product.getAttribute('data-language');
+                const productFormat = product.getAttribute('data-format');
+                
+                let showByCategory = category === 'all' || productCategory === category;
+                let showByPrice = true;
+                let showByLanguage = language === 'all' || productLanguage === language;
+                let showByFormat = format === 'all' || productFormat === format;
+
+                switch(priceRange) {
+                    case 'low':
+                        showByPrice = productPrice < 100000;
+                        break;
+                    case 'medium':
+                        showByPrice = productPrice >= 100000 && productPrice <= 300000;
+                        break;
+                    case 'high':
+                        showByPrice = productPrice > 300000;
+                        break;
+                }
+
+                if (showByCategory && showByPrice && showByLanguage && showByFormat) {
+                    visibleProducts.push(product);
+                }
+            });
+            
+            displayPage(visibleProducts);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Khởi tạo phân trang ban đầu
+        window.addEventListener('load', function() {
+            // Kiểm tra nếu có category được chọn từ URL, tự động lọc
+            const categoryFilter = document.getElementById('categoryFilter');
+            if (categoryFilter.value !== 'all') {
+                filterProducts();
+            } else {
+                const products = Array.from(document.querySelectorAll('.product'));
+                displayPage(products);
+            }
+        });
 
         function clearAllFilters() {
             document.getElementById('searchInput').value = '';
@@ -409,9 +564,9 @@ if (!$result) {
             document.getElementById('formatFilter').value = 'all';
             document.getElementById('sortFilter').value = 'default';
             
-            const products = document.querySelectorAll('.product');
-            products.forEach(product => product.style.display = 'block');
-            updateProductCount(products.length);
+            currentPage = 1;
+            const products = Array.from(document.querySelectorAll('.product'));
+            displayPage(products);
         }
 
         function sortProducts() {
@@ -702,6 +857,18 @@ if (!$result) {
                     }
                 });
         }
+    </script>
+    
+    <script>
+        // Xử lý nút Mua ngay
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('buy-now')) {
+                e.stopPropagation();
+                e.preventDefault();
+                const productId = e.target.getAttribute('data-product-id');
+                window.location.href = 'buy_now_page.php?id=' + productId;
+            }
+        });
     </script>
       <?php include 'footer.php'; ?>
 </body>

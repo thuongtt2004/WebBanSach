@@ -8,43 +8,53 @@ if (!isset($_SESSION['admin_id'])) {
 }
 
 require_once('config/connect.php');
-$targetDir = "uploads/";
-if (!is_writable($targetDir)) {
-    echo "Thư mục $targetDir không có quyền ghi";
-    exit;
-}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $productId = $_POST['product-id'];
     $productName = $_POST['product-name'];
-    $author = $_POST['author'] ?? null;
-    $publisher = $_POST['publisher'] ?? null;
-    $publishYear = $_POST['publish_year'] ?? null;
-    $isbn = $_POST['isbn'] ?? null;
-    $pages = $_POST['pages'] ?? null;
+    $author = $_POST['author'] ?? '';
+    $publisher = $_POST['publisher'] ?? '';
+    $publishYear = !empty($_POST['publish_year']) ? (int)$_POST['publish_year'] : 0;
+    $isbn = $_POST['isbn'] ?? '';
+    $pages = !empty($_POST['pages']) ? (int)$_POST['pages'] : 0;
     $language = $_POST['language'] ?? 'Tiếng Việt';
     $bookFormat = $_POST['book_format'] ?? 'Bìa mềm';
-    $dimensions = $_POST['dimensions'] ?? null;
-    $weight = $_POST['weight'] ?? null;
-    $series = $_POST['series'] ?? null;
-    $productPrice = $_POST['product-price'];
-    $productQuantity = $_POST['product-quantity'];
+    $dimensions = $_POST['dimensions'] ?? '';
+    $weight = !empty($_POST['weight']) ? (int)$_POST['weight'] : 0;
+    $series = $_POST['series'] ?? '';
+    $productPrice = (float)$_POST['product-price'];
+    $productQuantity = (int)$_POST['product-quantity'];
     $productDescription = $_POST['product-description'];
-    $categoryId = $_POST['category-id'];
+    $categoryId = (int)$_POST['category-id'];
+    
+    $imageUrl = 'uploads/no-image.jpg'; // Default image
 
     // Xử lý upload hình ảnh
     if (isset($_FILES['product-image']) && $_FILES['product-image']['error'] == 0) {
-        // Lấy danh sách tác giả và NXB cho dropdown
-        $authors_list = $conn->query("SELECT author_id, author_name FROM authors ORDER BY author_name ASC");
-        $publishers_list = $conn->query("SELECT publisher_id, publisher_name FROM publishers ORDER BY publisher_name ASC");
-
-        $author = $_POST['author'] ?? null;
-        $publisher = $_POST['publisher'] ?? null;
-        $fileName = basename($_FILES["product-image"]["name"]);
+        $targetDir = "uploads/";
+        
+        // Tạo thư mục nếu chưa tồn tại
+        if (!file_exists($targetDir)) {
+            mkdir($targetDir, 0777, true);
+        }
+        
+        // Validate file type
+        $allowedMimes = array('image/jpeg', 'image/png', 'image/gif');
+        if (!in_array($_FILES['product-image']['type'], $allowedMimes)) {
+            echo "<script>alert('Loại file không hợp lệ! Chỉ chấp nhận JPG, PNG, GIF');</script>";
+            exit;
+        }
+        
+        // Validate file size (5MB)
+        if ($_FILES["product-image"]["size"] > 5000000) {
+            echo "<script>alert('File quá lớn! Tối đa 5MB');</script>";
+            exit;
+        }
+        
+        $fileName = time() . '_' . basename($_FILES["product-image"]["name"]);
         $targetFile = $targetDir . $fileName;
         $imageFileType = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
         
-        // Kiểm tra file hình ảnh
         $validExtensions = array("jpg", "jpeg", "png", "gif");
         if (in_array($imageFileType, $validExtensions)) {
             if (move_uploaded_file($_FILES["product-image"]["tmp_name"], $targetFile)) {
@@ -57,13 +67,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             echo "<script>alert('Chỉ chấp nhận file JPG, JPEG, PNG & GIF!');</script>";
             exit;
         }
-    } else {
-        echo "<script>alert('Lỗi khi tải lên hình ảnh!');</script>";
     }
 
     // Thêm sản phẩm vào database
     $stmt = $conn->prepare("INSERT INTO products (product_id, product_name, author, publisher, publish_year, isbn, pages, language, book_format, dimensions, weight, series, price, description, image_url, stock_quantity, category_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("ssssisssssisdsiis", $productId, $productName, $author, $publisher, $publishYear, $isbn, $pages, $language, $bookFormat, $dimensions, $weight, $series, $productPrice, $productDescription, $imageUrl, $productQuantity, $categoryId);
+    $stmt->bind_param("ssssisssssisdssii", $productId, $productName, $author, $publisher, $publishYear, $isbn, $pages, $language, $bookFormat, $dimensions, $weight, $series, $productPrice, $productDescription, $imageUrl, $productQuantity, $categoryId);
 
     if ($stmt->execute()) {
         echo "<script>
@@ -73,45 +81,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } else {
         echo "<script>alert('Lỗi: " . $stmt->error . "');</script>";
     }
-    $allowedMimes = array('image/jpeg', 'image/png', 'image/gif');
-if (!in_array($_FILES['product-image']['type'], $allowedMimes)) {
-    echo "<script>alert('Loại file không hợp lệ!');</script>";
-    exit;
-}
-if ($_FILES["product-image"]["size"] > 5000000) { // 5MB
-    echo "<script>alert('File quá lớn (tối đa 5MB)');</script>";
-    exit;
-}
-if (isset($_FILES['product-image']) && $_FILES['product-image']['error'] == 0) {
-    $targetDir = "uploads/";
-    
-    // Tạo thư mục nếu chưa tồn tại
-    if (!file_exists($targetDir)) {
-        mkdir($targetDir, 0777, true);
-    }
-    
-    $fileName = time() . '_' . basename($_FILES["product-image"]["name"]);
-    $targetFile = $targetDir . $fileName;
-    $imageFileType = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
-    
-    // Debug thông tin
-    echo "Upload path: " . $targetFile . "<br>";
-    echo "File type: " . $imageFileType . "<br>";
-    echo "Temp file: " . $_FILES["product-image"]["tmp_name"] . "<br>";
-    
-    // Kiểm tra file hình ảnh
-    $validExtensions = array("jpg", "jpeg", "png", "gif");
-    if (in_array($imageFileType, $validExtensions)) {
-        if (!move_uploaded_file($_FILES["product-image"]["tmp_name"], $targetFile)) {
-            echo "Chi tiết lỗi upload: " . error_get_last()['message'];
-            exit;
-        }
-        $imageUrl = $targetFile;
-    } else {
-        echo "<script>alert('Chỉ chấp nhận file JPG, JPEG, PNG & GIF!');</script>";
-        exit;
-    }
-}
     $stmt->close();
 }
 
@@ -127,7 +96,7 @@ $categories = $conn->query("SELECT * FROM categories");
     <title>Thêm Sách Mới - TTHUONG BOOKSTORE</title>
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="css/add_product.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/fontawesome/all.min.css">
     <style>
         .form-grid {
             display: grid;
